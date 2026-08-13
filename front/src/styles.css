@@ -1,0 +1,12 @@
+/* You can add global styles to this file, and also import other style files */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #0f172a; /* Fondo oscuro global por si acaso */
+}
+
+body {
+  display: block;
+}
