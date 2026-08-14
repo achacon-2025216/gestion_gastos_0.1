@@ -1,1 +1,137 @@
-<p>inicio-gastos works!</p>
+<div class="dashboard">
+
+  <header class="topbar">
+    <div class="topbar__marca">
+      <span class="topbar__icono">$</span>
+      <div>
+        <h1>Gestión de Gastos</h1>
+        <p>Resumen de agosto 2026</p>
+      </div>
+    </div>
+    <button class="btn btn--fantasma">Cerrar sesión</button>
+  </header>
+
+  <section class="resumen">
+    <div class="resumen__tarjeta resumen__tarjeta--ingreso">
+      <span class="resumen__etiqueta">Ingresos</span>
+      <span class="resumen__monto">{{ totalIngresos | currency }}</span>
+    </div>
+    <div class="resumen__tarjeta resumen__tarjeta--egreso">
+      <span class="resumen__etiqueta">Gastos</span>
+      <span class="resumen__monto">{{ totalEgresos | currency }}</span>
+    </div>
+    <div class="resumen__tarjeta"
+         [class.resumen__tarjeta--positivo]="saldoRestante >= 0"
+         [class.resumen__tarjeta--negativo]="saldoRestante < 0">
+      <span class="resumen__etiqueta">Saldo restante</span>
+      <span class="resumen__monto">{{ saldoRestante | currency }}</span>
+    </div>
+  </section>
+
+  <section class="categorias">
+    @for (cat of categorias; track cat.key) {
+      <div class="categoria">
+        <div class="categoria__encabezado">
+          <span class="categoria__icono">{{ cat.icono }}</span>
+          <span class="categoria__nombre">{{ cat.nombre }}</span>
+        </div>
+
+        <div class="categoria__montos">
+          <span class="categoria__gastado">{{ gastoPorCategoria(cat.key) | currency }}</span>
+          <span class="categoria__presupuesto">de {{ cat.presupuesto | currency }}</span>
+        </div>
+
+        <div class="barra">
+          <div class="barra__relleno"
+               [class]="'barra__relleno--' + cat.key"
+               [style.width.%]="porcentaje(cat)"></div>
+        </div>
+        <span class="categoria__porcentaje">{{ porcentaje(cat) }}% usado</span>
+      </div>
+    }
+  </section>
+
+  <section class="movimientos">
+    <div class="movimientos__encabezado">
+      <h2>Movimientos del mes</h2>
+      <button class="btn btn--primario" (click)="abrirFormulario()">+ Agregar movimiento</button>
+    </div>
+
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Descripción</th>
+          <th>Categoría</th>
+          <th>Tipo</th>
+          <th>Monto</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of movimientos; track m.id) {
+          <tr>
+            <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ m.descripcion }}</td>
+            <td>{{ nombreCategoria(m.categoria) }}</td>
+            <td>
+              <span class="etiqueta"
+                    [class.etiqueta--ingreso]="m.tipo === 'ingreso'"
+                    [class.etiqueta--egreso]="m.tipo === 'egreso'">
+                {{ m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto' }}
+              </span>
+            </td>
+            <td [class.monto--ingreso]="m.tipo === 'ingreso'" [class.monto--egreso]="m.tipo === 'egreso'">
+              {{ m.tipo === 'ingreso' ? '+' : '−' }}{{ m.monto | currency }}
+            </td>
+            <td>
+              <button class="btn-icono" (click)="eliminarMovimiento(m.id)" aria-label="Eliminar movimiento">✕</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="tabla__vacio">Todavía no hay movimientos registrados este mes.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  @if (mostrarFormulario) {
+    <div class="modal-fondo" (click)="cerrarFormulario()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Nuevo movimiento</h2>
+
+        <label for="descripcion">Descripción</label>
+        <input id="descripcion" type="text" [(ngModel)]="nuevo.descripcion"
+               (blur)="sugerirCategoria()" placeholder="Ej. Recibo de luz" />
+
+        <label>Tipo</label>
+        <div class="tipo-selector">
+          <button type="button" [class.activo]="nuevo.tipo === 'egreso'" (click)="nuevo.tipo = 'egreso'">Gasto</button>
+          <button type="button" [class.activo]="nuevo.tipo === 'ingreso'" (click)="nuevo.tipo = 'ingreso'">Ingreso</button>
+        </div>
+
+        @if (nuevo.tipo === 'egreso') {
+          <label for="categoria">Categoría</label>
+          <select id="categoria" [(ngModel)]="nuevo.categoria">
+            @for (cat of categorias; track cat.key) {
+              <option [value]="cat.key">{{ cat.nombre }}</option>
+            }
+          </select>
+          @if (categoriaSugerida) {
+            <p class="sugerencia">Sugerencia automática según la descripción: {{ nombreCategoria(categoriaSugerida) }}</p>
+          }
+        }
+
+        <label for="monto">Monto</label>
+        <input id="monto" type="number" [(ngModel)]="nuevo.monto" placeholder="0.00" min="0" />
+
+        <div class="modal__acciones">
+         <button class="btn btn--fantasma" (click)="logout()">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
