@@ -1,0 +1,59 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Entorno y secretos
+.env
+.env.local
+
+# Bases de datos locales
+dev.db
+dev.db-journal
+
+# Cliente generado de Prisma
+src/generated/prisma/
+
+# Compilación y distribución
+dist/
+build/
+*.log
+
+# Entornos y editores
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Bloqueos de herramientas locales
+skills-lock.json
+
+# Angular (caché y compilación)
+.angular/
+out-tsc/
+
+
+# Dependencias de Node
+node_modules/
+
+# Carpetas de caché y configuración de herramientas / IA
+.agents/
+.claude/
+.windsurf/
+
+# Archivos compilados
+dist/
+build/
+
+# Variables de entorno y secretos
+.env
+
+# Base de datos local
+dev.db
+dev.db-journal
+
+# Carpeta generada de Prisma
+src/generated/prisma/
+
+# Registros y bloqueos locales
+skills-lock.json
+
