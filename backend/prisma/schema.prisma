@@ -15,4 +15,17 @@ model User {
   username String   @unique
   password String
   role     String   @default("user") // Puede ser "admin" o "user"
+  gastos   Gasto[]
+}
+
+model Gasto {
+  id          Int      @id @default(autoincrement())
+  descripcion String
+  categoria   String
+  tipo        String
+  monto       Decimal  @db.Decimal(10, 2)
+  fecha       DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
