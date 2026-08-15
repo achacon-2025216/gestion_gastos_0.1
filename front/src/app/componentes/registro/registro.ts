@@ -23,7 +23,6 @@ export class RegistroComponent {
   onRegister() {
     const newUser = { username: this.username, password: this.password };
 
-    // Cambiado de 'http://localhost:3000/register' a 'http://localhost:3000/api/register'
     this.http.post<any>('http://localhost:3000/api/register', newUser).subscribe({
       next: (response) => {
         this.successMessage = '¡Cuenta creada con éxito! Redirigiendo...';
@@ -32,7 +31,7 @@ export class RegistroComponent {
         }, 1500);
       },
       error: (err) => {
-        this.errorMessage = 'Error al registrar el usuario';
+        this.errorMessage = err.error?.error || 'Error al registrar el usuario';
         console.error(err);
       }
     });

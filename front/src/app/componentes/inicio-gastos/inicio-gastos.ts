@@ -38,6 +38,11 @@ export class InicioGastos {
     this.router.navigate(['/login']);
   }
 
+  // --- Validación de Rol ---
+  esAdmin(): boolean {
+    return localStorage.getItem('role') === 'admin';
+  }
+
   // --- "Compromisos financieros" que el usuario define al inicio de mes ---
   categorias: Categoria[] = [
     { key: 'canasta', nombre: 'Canasta Básica', icono: '🛒', presupuesto: 1200 },
@@ -129,6 +134,11 @@ export class InicioGastos {
       fecha: new Date(),
     });
     this.cerrarFormulario();
+  }
+
+  // Alias requerido por el botón Guardar del HTML
+  guardarMovimiento(): void {
+    this.agregarMovimiento();
   }
 
   eliminarMovimiento(id: number): void {
