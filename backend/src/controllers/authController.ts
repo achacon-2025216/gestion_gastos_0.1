@@ -1,70 +1,95 @@
 import type { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+// Configuración obligatoria del adaptador para Prisma v7 con PostgreSQL
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'clave_secreta_super_segura';
+const JWT_SECRET = process.env.JWT_SECRET || 'admin';
 
-// Controlador para Registrar Usuario
-export const registerUser = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-
+// Registro de usuario
+export const register = async (req: Request, res: Response) => {
   try {
+    const { username, password } = req.body;
+
     if (!username || !password) {
       return res.status(400).json({ error: 'El usuario y la contraseña son obligatorios' });
     }
 
-    const role = username.toLowerCase() === 'admin' ? 'admin' : 'user';
+    // Verificar si el usuario ya existe
+    const existingUser = await prisma.user.findUnique({
+      where: { username }
+    });
 
+    if (existingUser) {
+      return res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
+    }
+
+    // Encriptar la contraseña de forma segura
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear el usuario en la base de datos
     const newUser = await prisma.user.create({
-      data: { username, password, role },
+      data: {
+        username,
+        password: hashedPassword,
+        role: 'user'
+      }
     });
 
     return res.status(201).json({
-      message: `Usuario registrado exitosamente como ${role}`,
-      user: { id: newUser.id, username: newUser.username, role: newUser.role },
+      message: '¡Usuario registrado con éxito!',
+      user: { id: newUser.id, username: newUser.username, role: newUser.role }
     });
+
   } catch (error: any) {
-    console.error("DETALLE DEL ERROR EN REGISTRO:", error);
-    return res.status(500).json({ error: error.message || 'Error al registrar el usuario' });
+    console.error('ERROR EN REGISTRO:', error);
+    return res.status(500).json({ error: 'Error interno al registrar el usuario' });
   }
 };
 
-// Controlador para Iniciar Sesión (Login)
-export const loginUser = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-
+// Inicio de sesión
+export const login = async (req: Request, res: Response) => {
   try {
+    const { username, password } = req.body;
+
     if (!username || !password) {
-      return res.status(400).json({ error: 'Ingresa tu usuario y contraseña' });
+      return res.status(400).json({ error: 'Faltan credenciales' });
     }
 
-    const user = await prisma.user.findUnique({ 
-      where: { username } 
+    const user = await prisma.user.findUnique({
+      where: { username }
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
 
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+
+    // Generar el token JWT con los datos del usuario
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: user.role },
       JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: '2h' }
     );
 
-    return res.status(200).json({
-      message: 'Inicio de sesión exitoso',
+    return res.json({
+      message: 'Login exitoso',
       token,
-      role: user.role,
+      role: user.role
     });
+
   } catch (error: any) {
-    console.error("DETALLE DEL ERROR EN LOGIN:", error);
-    return res.status(500).json({ error: 'Error al iniciar sesión en el servidor' });
+    console.error('ERROR EN LOGIN:', error);
+    return res.status(500).json({ error: 'Error interno al iniciar sesión' });
   }
 };

@@ -1,32 +1,52 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = (process.env.JWT_SECRET as string) || 'admin';
+const JWT_SECRET: string = process.env.JWT_SECRET || 'cambia_esto_en_produccion';
 
-export interface AuthRequest extends Request {
-  user?: { userId: number; username: string; role: string };
+export interface AuthUser {
+  id: number;
+  username: string;
+  role: string;
 }
 
-export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export interface AuthRequest extends Request {
+  user?: AuthUser;
+}
+
+export function verifyToken(req: AuthRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Token no provisto' });
+
+  if (!authHeader) {
+    res.status(401).json({ message: 'Token no proporcionado' });
+    return;
+  }
 
   const token = authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Token mal formado' });
+
+  if (!token) {
+    res.status(401).json({ message: 'Token no proporcionado' });
+    return;
+  }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; username: string; role: string };
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(403).json({ error: 'Token inválido o expirado' });
-  }
-};
-export const verifyAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  verifyToken(req, res, () => {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado: Requiere privilegios de administrador' });
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (typeof decoded === 'string' || !('id' in decoded)) {
+      res.status(401).json({ message: 'Token inválido' });
+      return;
     }
+
+    req.user = decoded as unknown as AuthUser;
     next();
-  });
-};
+  } catch {
+    res.status(401).json({ message: 'Token inválido o expirado' });
+  }
+}
+
+export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction): void {
+  if (req.user?.role !== 'admin') {
+    res.status(403).json({ message: 'No tienes permisos de administrador' });
+    return;
+  }
+  next();
+}
