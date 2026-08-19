@@ -8,7 +8,7 @@ import { PrismaClient } from '../../prisma/generated/prisma/index.js';// ajusta 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-const router = Router();
+const router: Router = Router();
 const JWT_SECRET: string = process.env.JWT_SECRET || 'cambia_esto_en_produccion';
 
 // POST /api/register

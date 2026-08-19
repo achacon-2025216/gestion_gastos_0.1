@@ -139,6 +139,11 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 pnpm prisma generate
 ```
 
+### Migrar la bse de datos
+```bash
+pnpm prisma migrate dev
+```
+
 ### 6. Levantar el servidor
 
 ```bash
@@ -167,6 +172,12 @@ pnpm install
 
 ```bash
 pnpm approve-builds
+```
+
+### Implementar angular
+
+```bash
+pnpm add -D @angular/cli
 ```
 
 ### 4. Levantar el servidor de desarrollo
