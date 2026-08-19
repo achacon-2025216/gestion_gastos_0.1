@@ -1,4 +1,4 @@
-/* Reseteo global para asegurar pantalla completa sin márgenes */
+/* Reseteo global */
 html, body {
   margin: 0;
   padding: 0;
@@ -10,66 +10,61 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Contenedor general que centra la tarjeta en toda la pantalla con fondo financiero */
+/* Contenedor general centrado con fondo azul marino */
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100vw;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: #192939;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   padding: 20px;
 }
 
-/* Tarjeta principal del login */
+/* Tarjeta principal (FORZAMOS EL FONDO BLANCO AQUÍ) */
 .login-card {
-  background: #ffffff;
+  background: #ffffff !important;
   width: 100%;
   max-width: 420px;
   padding: 40px 35px;
-  border-radius: 20px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-.login-card:hover {
-  transform: translateY(-3px);
-}
-
-/* Cabecera y logotipo estético */
+/* Cabecera y Logotipo */
 .login-header {
   text-align: center;
   margin-bottom: 30px;
 }
 
-.icon-container {
+.logo-container {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 65px;
-  height: 65px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  border-radius: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+}
+
+.logo-container img {
+  max-width: 150px; /* Cambia este valor de 110px a 150px o el tamaño que prefieras */
+  height: auto;
+  object-fit: contain;
 }
 
 .login-header h2 {
   font-size: 26px;
   font-weight: 700;
-  color: #0f172a;
+  color: #192939;
   margin: 0 0 8px 0;
 }
 
 .login-header p {
   font-size: 14px;
-  color: #64748b;
+  color: #A3A2C2; /* Lavanda suave */
   margin: 0;
 }
 
-/* Alerta de sesión expirada por inactividad */
+/* Alerta de sesión expirada */
 .session-expired-alert {
   display: flex;
   align-items: center;
@@ -78,27 +73,9 @@ html, body {
   border: 1px solid #fcd34d;
   color: #92400e;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 13px;
-  font-weight: 500;
   margin-bottom: 20px;
-  animation: fadeIn 0.3s ease;
-}
-
-.session-expired-alert .alert-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Campos de formulario */
@@ -110,7 +87,7 @@ html, body {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: #192939;
   margin-bottom: 8px;
 }
 
@@ -119,20 +96,19 @@ html, body {
   padding: 12px 16px;
   font-size: 15px;
   border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 12px;
   outline: none;
-  transition: all 0.2s ease;
   background-color: #f8fafc;
-  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .input-group input:focus {
-  border-color: #10b981;
+  border-color: #75B79C; /* Verde menta */
   background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 4px rgba(117, 183, 156, 0.15);
 }
 
-/* Mensaje de error de credenciales */
+/* Mensaje de error */
 .error {
   color: #dc2626;
   font-size: 13px;
@@ -140,56 +116,23 @@ html, body {
   text-align: center;
 }
 
-/* Acciones extras (Recuérdame / Recuperar contraseña) */
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  margin-bottom: 25px;
-}
-
-.remember-me {
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.forgot-password {
-  color: #059669;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-/* Botón de envío elegante en tonos verde esmeralda financieros */
+/* Botón de envío (Usando Azul Marino para destacar) */
 .btn-submit {
   width: 100%;
   padding: 14px;
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  background: #192939;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transition: background 0.3s ease;
+  box-shadow: 0 4px 12px rgba(25, 41, 57, 0.2);
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, #059669 0%, #065f46 100%);
-  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.6);
-  transform: translateY(-1px);
-}
-
-.btn-submit:active {
-  transform: translateY(0);
+  background: #24384d;
 }
 
 /* Pie de tarjeta */
@@ -197,11 +140,11 @@ html, body {
   text-align: center;
   margin-top: 25px;
   font-size: 13px;
-  color: #64748b;
+  color: #192939;
 }
 
 .login-footer a {
-  color: #059669;
+  color: #75B79C; /* Verde menta */
   text-decoration: none;
   font-weight: 600;
 }

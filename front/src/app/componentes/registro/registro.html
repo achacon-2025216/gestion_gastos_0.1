@@ -2,8 +2,8 @@
   <div class="login-card">
     
     <div class="login-header">
-      <div class="icon-container">
-        <span>+</span>
+      <div class="logo-container">
+        <img src="/img/logo_check.png" alt="Logo GastoCheck">
       </div>
       <h2>Registro de Usuario</h2>
       <p>Crea tu cuenta para comenzar</p>
@@ -20,8 +20,8 @@
         <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required />
       </div>
 
-      <p *ngIf="successMessage" class="success" style="color: #10b981; text-align: center; font-size: 14px; margin-bottom: 10px;">{{ successMessage }}</p>
-      <p *ngIf="errorMessage" class="error" style="color: #e74c3c; text-align: center; font-size: 14px; margin-bottom: 10px;">{{ errorMessage }}</p>
+      <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+      <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
 
       <button type="submit" class="btn-submit">Registrarse</button>
     </form>
