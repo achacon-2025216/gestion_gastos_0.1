@@ -10,6 +10,11 @@
       <p>Controla tus finanzas familiares</p>
     </div>
 
+    <div *ngIf="sessionExpired" class="session-expired-alert">
+      <span class="alert-icon">⏱</span>
+      <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión.</span>
+    </div>
+
     <form (submit)="onLogin(); $event.preventDefault()">
       <div class="input-group">
         <label>Usuario</label>

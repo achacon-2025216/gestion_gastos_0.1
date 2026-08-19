@@ -1,32 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth'; // ajusta la ruta según donde esté login.ts
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   username = '';
   password = '';
   errorMessage = '';
+  sessionExpired = false;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    // Detecta si llegamos aquí por logout automático (?expired=1)
+    this.sessionExpired = this.route.snapshot.queryParamMap.get('expired') === '1';
+  }
 
   onLogin() {
-    const credentials = { username: this.username, password: this.password };
+    this.errorMessage = '';
 
-    // Agregado '/api' a la URL
-    this.http.post<any>('http://localhost:3000/api/login', credentials).subscribe({
-      next: (response) => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('role', response.role);
+    this.authService.login(this.username, this.password).subscribe({
+      next: () => {
         this.router.navigate(['/inicio-gastos']);
       },
       error: (err) => {
