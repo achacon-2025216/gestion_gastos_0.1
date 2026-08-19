@@ -10,61 +10,88 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Contenedor general centrado con fondo azul marino */
-.login-wrapper {
+/* Contenedor principal en dos mitades */
+.split-login-wrapper {
   display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100vw;
   min-height: 100vh;
-  background: #192939;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  padding: 20px;
 }
 
-/* Tarjeta principal (FORZAMOS EL FONDO BLANCO AQUÍ) */
-.login-card {
-  background: #ffffff !important;
-  width: 100%;
-  max-width: 420px;
-  padding: 40px 35px;
-  border-radius: 24px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+/* Lado izquierdo (Blanco con texto y logo oscuro) */
+.login-left-panel {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 60px;
+  color: #192939;
 }
 
-/* Cabecera y Logotipo */
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logo-container {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.logo-container img {
-  max-width: 150px; /* Cambia este valor de 110px a 150px o el tamaño que prefieras */
+.login-left-panel .logo-container img {
+  max-width: 150px;
   height: auto;
   object-fit: contain;
 }
 
-.login-header h2 {
-  font-size: 26px;
+.login-left-panel h1 {
+  font-size: 36px;
   font-weight: 700;
+  margin: 20px 0 10px 0;
+  letter-spacing: -0.5px;
   color: #192939;
+}
+
+.brand-tagline {
+  font-size: 16px;
+  color: #64748b;
+  line-height: 1.5;
+  max-width: 400px;
+  margin: 0;
+}
+
+.placeholder-art {
+  width: 100%;
+  height: 220px;
+  background: radial-gradient(circle, rgba(117, 183, 156, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 20px;
+}
+
+/* Lado derecho (Azul Marino con formulario claro) */
+.login-right-panel {
+  flex: 1;
+  background: #192939;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.login-card-split {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Cabecera del formulario */
+.login-header {
+  margin-bottom: 30px;
+}
+
+.login-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
   margin: 0 0 8px 0;
 }
 
 .login-header p {
   font-size: 14px;
-  color: #A3A2C2; /* Lavanda suave */
+  color: #A3A2C2;
   margin: 0;
 }
 
-/* Alerta de sesión expirada */
+/* Alerta de sesión */
 .session-expired-alert {
   display: flex;
   align-items: center;
@@ -87,7 +114,7 @@ html, body {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #192939;
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
@@ -95,44 +122,44 @@ html, body {
   width: 100%;
   padding: 12px 16px;
   font-size: 15px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #334155;
   border-radius: 12px;
   outline: none;
-  background-color: #f8fafc;
+  background-color: #0f172a;
+  color: #ffffff;
   transition: all 0.2s ease;
 }
 
 .input-group input:focus {
-  border-color: #75B79C; /* Verde menta */
-  background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(117, 183, 156, 0.15);
+  border-color: #75B79C;
+  background-color: #192939;
+  box-shadow: 0 0 0 4px rgba(117, 183, 156, 0.2);
 }
 
 /* Mensaje de error */
 .error {
-  color: #dc2626;
+  color: #f87171;
   font-size: 13px;
   margin: -10px 0 15px 0;
-  text-align: center;
 }
 
-/* Botón de envío (Usando Azul Marino para destacar) */
+/* Botón de envío */
 .btn-submit {
   width: 100%;
   padding: 14px;
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
-  background: #192939;
+  color: #192939;
+  background: #75B79C;
   border: none;
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s ease;
-  box-shadow: 0 4px 12px rgba(25, 41, 57, 0.2);
+  box-shadow: 0 4px 12px rgba(117, 183, 156, 0.3);
 }
 
 .btn-submit:hover {
-  background: #24384d;
+  background: #86c5ac;
 }
 
 /* Pie de tarjeta */
@@ -140,15 +167,39 @@ html, body {
   text-align: center;
   margin-top: 25px;
   font-size: 13px;
-  color: #192939;
+  color: #A3A2C2;
 }
 
 .login-footer a {
-  color: #75B79C; /* Verde menta */
+  color: #75B79C;
   text-decoration: none;
   font-weight: 600;
 }
 
 .login-footer a:hover {
   text-decoration: underline;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+  .login-left-panel {
+    display: none;
+  }
+  .login-right-panel {
+    background: #ffffff;
+  }
+  .login-right-panel .login-header h2 {
+    color: #192939;
+  }
+  .login-right-panel .input-group label {
+    color: #192939;
+  }
+  .login-right-panel .input-group input {
+    background-color: #f8fafc;
+    color: #192939;
+    border-color: #e2e8f0;
+  }
+  .login-right-panel .login-footer {
+    color: #192939;
+  }
 }

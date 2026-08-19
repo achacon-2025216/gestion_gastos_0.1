@@ -1,38 +1,54 @@
-<div class="login-wrapper">
-  <div class="login-card">
-    
-    <div class="login-header">
+<div class="split-login-wrapper">
+  
+  <!-- Lado Izquierdo: Blanco (Logo y Bienvenida) -->
+  <div class="login-left-panel">
+    <div class="brand-content">
       <div class="logo-container">
-      <img src="/img/logo_check.png" alt="Logo GastoCheck">
-    </div>
-      <h2>¡Bienvenido!</h2>
-      <p>Controla tus finanzas de forma inteligente</p>
-    </div>
-
-    <div *ngIf="sessionExpired" class="session-expired-alert">
-      <span class="alert-icon">⏱</span>
-      <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión.</span>
-    </div>
-
-    <form (submit)="onLogin(); $event.preventDefault()">
-      <div class="input-group">
-        <label>Usuario</label>
-        <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+        <img src="/img/logo_check.png" alt="Logo GastoCheck">
       </div>
-
-      <div class="input-group">
-        <label>Contraseña</label>
-        <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required />
-      </div>
-
-      <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
-
-      <button type="submit" class="btn-submit">Entrar</button>
-    </form>
-
-    <div class="login-footer">
-      <p>¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      <h1>GastoCheck</h1>
+      <p class="brand-tagline">Toma el control de tus finanzas de forma inteligente y segura todos los días.</p>
     </div>
-
+    <div class="illustration-container">
+      <div class="placeholder-art"></div>
+    </div>
   </div>
+
+  <!-- Lado Derecho: Azul Marino (Formulario de acceso) -->
+  <div class="login-right-panel">
+    <div class="login-card-split">
+      
+      <div class="login-header">
+        <h2>¡Bienvenido!</h2>
+        <p>Ingresa a tu cuenta</p>
+      </div>
+
+      <div *ngIf="sessionExpired" class="session-expired-alert">
+        <span class="alert-icon">⏱</span>
+        <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión.</span>
+      </div>
+
+      <form (submit)="onLogin(); $event.preventDefault()">
+        <div class="input-group">
+          <label>Usuario</label>
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+        </div>
+
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required />
+        </div>
+
+        <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <button type="submit" class="btn-submit">Entrar</button>
+      </form>
+
+      <div class="login-footer">
+        <p>¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      </div>
+
+    </div>
+  </div>
+
 </div>
