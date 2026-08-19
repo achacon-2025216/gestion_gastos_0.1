@@ -64,6 +64,11 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 pnpm prisma generate
 ```
 
+### Migrar la bse de datos
+```bash
+pnpm prisma migrate dev
+```
+
 ### 6. Levantar el servidor
 
 ```bash
