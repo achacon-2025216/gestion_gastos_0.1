@@ -10,7 +10,7 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'admin';
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 // Registro de usuario
 export const register = async (req: Request, res: Response) => {
