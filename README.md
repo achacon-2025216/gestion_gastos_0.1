@@ -99,6 +99,12 @@ pnpm install
 pnpm approve-builds
 ```
 
+### Implementar angular
+
+```bash
+pnpm add -D @angular/cli
+```
+
 ### 4. Levantar el servidor de desarrollo
 
 ```bash
