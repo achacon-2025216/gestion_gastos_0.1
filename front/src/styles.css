@@ -4,9 +4,10 @@ html, body {
   padding: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  background-color: #0f172a; /* Fondo oscuro global por si acaso */
+  overflow: hidden !important;
+  background-color: #265957; /* Fondo de respaldo acorde al tema de la app */
 }
 
 body {
   display: block;
-}
+} 

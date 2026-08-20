@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../services/auth'; // ajusta la ruta según donde esté login.ts
+import { AuthService } from '../../services/auth'; 
 
 @Component({
   selector: 'app-login',
@@ -16,6 +16,10 @@ export class LoginComponent implements OnInit {
   password = '';
   errorMessage = '';
   sessionExpired = false;
+  showPassword = false;
+
+  // Declaramos la variable para el logo
+  logoSrc = 'img/logo_check.png'; 
 
   constructor(
     private authService: AuthService,
@@ -24,7 +28,6 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Detecta si llegamos aquí por logout automático (?expired=1)
     this.sessionExpired = this.route.snapshot.queryParamMap.get('expired') === '1';
   }
 

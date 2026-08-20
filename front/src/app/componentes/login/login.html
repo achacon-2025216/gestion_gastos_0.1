@@ -1,39 +1,113 @@
-<div class="login-wrapper">
-  <div class="login-card">
-    
-    <div class="login-header">
-      <div class="icon-container">
-        <!-- Puedes poner un ícono o símbolo SVG/Moneda aquí -->
-        <span>$</span>
-      </div>
-      <h2>Iniciar Sesión</h2>
-      <p>Controla tus finanzas familiares</p>
-    </div>
+<div class="split-login-wrapper">
 
-    <div *ngIf="sessionExpired" class="session-expired-alert">
-      <span class="alert-icon">⏱</span>
-      <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión.</span>
-    </div>
+  <!-- Lado Izquierdo: Blanco (Logo, Bienvenida e Ilustración) -->
+  <div class="login-left-panel">
 
-    <form (submit)="onLogin(); $event.preventDefault()">
-      <div class="input-group">
-        <label>Usuario</label>
-        <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+
+    <div class="left-content-wrapper">
+
+      <div class="brand-content">
+        <div class="logo-container">
+          <img src="/img/logo_check.png" alt="Logo GastoCheck">
+        </div>
+        <h1>GastoCheck</h1>
+        <p class="brand-tagline">Toma el control de tus finanzas de forma inteligente y segura todos los días.</p>
       </div>
 
-      <div class="input-group">
-        <label>Contraseña</label>
-        <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required />
+      <div class="illustration-container">
+        <div class="phone-stage">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-dot"></div>
+              <div class="phone-balance-label">Saldo disponible</div>
+              <div class="phone-balance">$3,482.50</div>
+              <div class="phone-bars"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="phone-row"><div class="dot-sm"></div><div class="line"></div><div class="amt">-$45</div></div>
+              <div class="phone-row"><div class="dot-sm"></div><div class="line"></div><div class="amt">-$120</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deco bubble">
+          <div class="bubble-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4C8B6C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <div class="bubble-title">Pago registrado</div>
+            <div class="bubble-sub">Hace 2 min</div>
+          </div>
+        </div>
+
+        <div class="deco badge-percent">
+          <div class="arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4C8B6C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+          </div>
+          <div class="txt">+12% ahorro este mes</div>
+        </div>
+
+        <div class="deco chip-category">
+          <div class="emoji-dot">🍔</div>
+          <div><div class="txt">Comida</div></div>
+          <div class="amt">-$45</div>
+        </div>
+
+        <div class="deco chip-category2">
+          <div class="emoji-dot">🚗</div>
+          <div class="txt">Transporte</div>
+        </div>
+
+        <div class="coin coin1">$</div>
+        <div class="coin coin2">$</div>
+        <div class="coin coin3">$</div>
+        <div class="coin coin4">$</div>
+        <div class="coin coin5">$</div>
+        <div class="coin coin6">$</div>
+        <div class="coin coin7">$</div>
+        <div class="coin coin8">$</div>
       </div>
 
-      <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
-
-      <button type="submit" class="btn-submit">Entrar</button>
-    </form>
-
-    <div class="login-footer">
-      <p>¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
     </div>
-
   </div>
+
+  <!-- Lado Derecho: Fondo y tarjeta con el color solicitado -->
+  <div class="login-right-panel">
+    <div class="login-card-split">
+
+      <div class="login-header">
+        <h2>¡Bienvenido!</h2>
+        <p>Ingresa a tu cuenta</p>
+      </div>
+
+      <div *ngIf="sessionExpired" class="session-expired-alert">
+        <span class="alert-icon">⏱</span>
+        <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión.</span>
+      </div>
+
+      <form (submit)="onLogin(); $event.preventDefault()">
+        <div class="input-group">
+          <label>Usuario</label>
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+        </div>
+
+        <div class="input-group">
+          <label>Contraseña</label>
+          <div class="input-wrap">
+            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required />
+          </div>
+        </div>
+
+        <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <button type="submit" class="btn-submit">Entrar</button>
+      </form>
+
+      <div class="login-footer">
+        <p>¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      </div>
+
+    </div>
+  </div>
+
 </div>
