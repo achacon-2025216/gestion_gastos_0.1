@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit {
   password = '';
   errorMessage = '';
   sessionExpired = false;
+  showPassword = false;
 
   // Declaramos la variable para el logo
   logoSrc = 'img/logo_check.png'; 
