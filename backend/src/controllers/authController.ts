@@ -1,16 +1,20 @@
 import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { PrismaClient } from '../../prisma/generated/prisma/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Configuración obligatoria del adaptador para Prisma v7 con PostgreSQL
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+// Conexión directa para evitar errores de variables de entorno vacías
+const pool = new pg.Pool({ 
+  connectionString: "postgresql://postgres:admin@localhost:5432/gestion_gastos?schema=public" 
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_SECRET = process.env.JWT_SECRET || 'cambia_esto_en_produccion';
+const router: Router = Router();
 
 // Registro de usuario
 export const register = async (req: Request, res: Response) => {
@@ -21,7 +25,6 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'El usuario y la contraseña son obligatorios' });
     }
 
-    // Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({
       where: { username }
     });
@@ -30,10 +33,8 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
     }
 
-    // Encriptar la contraseña de forma segura
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear el usuario en la base de datos
     const newUser = await prisma.user.create({
       data: {
         username,
@@ -75,7 +76,6 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
 
-    // Generar el token JWT con los datos del usuario
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: user.role },
       JWT_SECRET,
@@ -93,3 +93,9 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Error interno al iniciar sesión' });
   }
 };
+
+// Definición de las rutas del Router
+router.post('/register', register);
+router.post('/login', login);
+
+export default router;
