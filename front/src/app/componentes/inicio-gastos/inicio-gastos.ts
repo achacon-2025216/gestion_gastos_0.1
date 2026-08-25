@@ -114,6 +114,10 @@ export class InicioGastos {
     this.mostrarFormulario = true;
   }
 
+  abrirFiltro(): void {
+    // lógica de filtros pendiente
+  }
+
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
     this.nuevo = { descripcion: '', monto: null, tipo: 'egreso', categoria: 'canasta' };

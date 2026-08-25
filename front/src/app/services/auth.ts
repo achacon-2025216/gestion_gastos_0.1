@@ -5,7 +5,8 @@ import { Observable, tap } from 'rxjs';
 
 interface AuthResponse {
   token: string;
-  user: { id: number; username: string; role: string };
+  role: string;
+  message?: string;
 }
 
 interface JwtPayload {
@@ -29,8 +30,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }).pipe(
       tap((res) => {
         localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.user.role);
-        localStorage.setItem('username', res.user.username);
+        localStorage.setItem('role', res.role);
+        localStorage.setItem('username', username);
         this.scheduleAutoLogout();
       })
     );
@@ -112,4 +113,4 @@ export class AuthService {
       this.logout(true);
     }, msUntilExpiry);
   }
-}
+} 
