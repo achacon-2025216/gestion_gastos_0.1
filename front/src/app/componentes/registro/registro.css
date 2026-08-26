@@ -220,11 +220,3 @@
   .illustration-container{display: none;}
   .register-left-panel{padding: 24px 20px;}
 }
-
-/* Si el sistema del usuario pide reducir movimiento, esto apaga
-   toda la decoración animada de una vez (accesibilidad + rendimiento) */
-@media (prefers-reduced-motion: reduce){
-  .blob, .deco, .coin{
-    animation: none !important;
-  }
-}

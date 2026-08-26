@@ -309,11 +309,3 @@
   .login-right-panel{padding: 20px;}
   .login-card-split{padding: 24px 20px;}
 }
-
-/* Si el sistema del usuario pide reducir movimiento, o si el navegador
-   está batallando, esto apaga toda la decoración animada de una vez */
-@media (prefers-reduced-motion: reduce){
-  .blob, .phone, .deco, .coin{
-    animation: none !important;
-  }
-}
