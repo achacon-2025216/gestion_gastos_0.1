@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -63,12 +63,22 @@ export class InicioGastos {
   mostrarFormulario = false;
   categoriaSugerida: CategoriaKey | null = null;
 
-  nuevo: { descripcion: string; monto: number | null; tipo: TipoMovimiento; categoria: CategoriaKey } = {
+  private hoyComoTexto(): string {
+    const hoy = new Date();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${hoy.getFullYear()}-${mes}-${dia}`;
+  }
+
+  nuevo: { descripcion: string; monto: number | null; tipo: TipoMovimiento; categoria: CategoriaKey; fecha: string } = {
     descripcion: '',
     monto: null,
     tipo: 'egreso',
     categoria: 'canasta',
+    fecha: this.hoyComoTexto(),
   };
+
+  errores: { descripcion?: string; monto?: string; fecha?: string } = {};
 
   // Palabras clave para categorizar automáticamente los egresos
   private palabrasClave: Record<string, CategoriaKey> = {
@@ -110,8 +120,32 @@ export class InicioGastos {
     return Math.min(100, Math.round((this.gastoPorCategoria(cat.key) / cat.presupuesto) * 100));
   }
 
+  @ViewChild('descripcionInput') descripcionInput?: ElementRef<HTMLInputElement>;
+
   abrirFormulario(): void {
     this.mostrarFormulario = true;
+    setTimeout(() => this.descripcionInput?.nativeElement.focus(), 0);
+  }
+
+  // --- Menú desplegable "Menú / Este mes / Mes pasado / Este año" ---
+  menuAbierto = false;
+  menuSeleccionado = 'Menú';
+  opcionesMenu = ['Este mes', 'Mes pasado', 'Este año'];
+
+  // Cierra el menú si el usuario hace clic en cualquier parte fuera de él
+  @HostListener('document:click', ['$event'])
+  clickFuera(event: Event): void {
+    if (!this.menuAbierto) return;
+    if (!(event.target as HTMLElement).closest('.menu-dropdown')) {
+      this.menuAbierto = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  cerrarConEscape(): void {
+    if (this.mostrarFormulario) {
+      this.cerrarFormulario();
+    }
   }
 
   abrirFiltro(): void {
@@ -120,24 +154,50 @@ export class InicioGastos {
 
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
-    this.nuevo = { descripcion: '', monto: null, tipo: 'egreso', categoria: 'canasta' };
+    this.nuevo = { descripcion: '', monto: null, tipo: 'egreso', categoria: 'canasta', fecha: this.hoyComoTexto() };
     this.categoriaSugerida = null;
+    this.errores = {};
+  }
+
+  mostrarToast = false;
+  mensajeToast = '';
+  private timeoutToast: any;
+
+  private lanzarToast(mensaje: string): void {
+    this.mensajeToast = mensaje;
+    this.mostrarToast = true;
+    clearTimeout(this.timeoutToast);
+    this.timeoutToast = setTimeout(() => (this.mostrarToast = false), 2500);
   }
 
   agregarMovimiento(): void {
-    if (!this.nuevo.descripcion.trim() || !this.nuevo.monto || this.nuevo.monto <= 0) {
+    this.errores = {};
+
+    if (!this.nuevo.descripcion.trim()) {
+      this.errores.descripcion = 'Escribe una descripción para el movimiento.';
+    }
+    if (!this.nuevo.monto || this.nuevo.monto <= 0) {
+      this.errores.monto = 'Ingresa un monto mayor a Q0.00.';
+    }
+    if (!this.nuevo.fecha) {
+      this.errores.fecha = 'Selecciona una fecha.';
+    }
+
+    if (Object.keys(this.errores).length > 0) {
       return;
     }
+
     const categoriaFinal = this.nuevo.tipo === 'ingreso' ? 'ingreso' : this.nuevo.categoria;
     this.movimientos.unshift({
       id: Date.now(),
       descripcion: this.nuevo.descripcion.trim(),
       categoria: categoriaFinal,
       tipo: this.nuevo.tipo,
-      monto: this.nuevo.monto,
-      fecha: new Date(),
+      monto: this.nuevo.monto!,
+      fecha: new Date(this.nuevo.fecha + 'T00:00:00'),
     });
     this.cerrarFormulario();
+    this.lanzarToast('Movimiento agregado correctamente.');
   }
 
   // Alias requerido por el botón Guardar del HTML

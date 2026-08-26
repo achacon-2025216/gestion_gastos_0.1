@@ -30,12 +30,25 @@
       <p>Mide tus gastos sin cansarte</p>
     </div>
     <div class="welcome-banner__acciones">
-      <select class="select-menu">
-        <option>Menú</option>
-        <option>Este mes</option>
-        <option>Mes pasado</option>
-        <option>Este año</option>
-      </select>
+      <div class="menu-dropdown">
+        <button type="button" class="select-menu" (click)="menuAbierto = !menuAbierto">
+          <span>{{ menuSeleccionado }}</span>
+          <svg class="menu-dropdown__chevron" [class.rotado]="menuAbierto" viewBox="0 0 12 8" width="12" height="8">
+            <path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        @if (menuAbierto) {
+          <ul class="menu-dropdown__list">
+            @for (opcion of opcionesMenu; track opcion) {
+              <li [class.activo]="opcion === menuSeleccionado"
+                  (click)="menuSeleccionado = opcion; menuAbierto = false">
+                {{ opcion }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
       <button class="btn btn--filtro" (click)="abrirFiltro()">
         <span class="icono-filtro">⧩</span> Filtrar
       </button>
@@ -65,7 +78,13 @@
     <div class="metrics-grid">
       <!-- 1. Saldo activo (Saldo restante) -->
       <div class="metric-card dark-card">
-        <div class="card-icon-badge">💰</div>
+        <div class="card-icon-badge badge-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 7l1.5-3h5L16 7"/>
+            <path d="M6 7h12l1 4c.7 3-2 8-7 8s-7.7-5-7-8l1-4Z"/>
+            <circle cx="12" cy="13" r="1.6"/>
+          </svg>
+        </div>
         <div class="card-content">
           <span>Saldo activo</span>
           <h2>{{ saldoRestante | currency:'Q ':'symbol':'1.2-2' }}</h2>
@@ -74,7 +93,13 @@
 
       <!-- 2. Saldo por pagar (Total Egresos/Gastos) -->
       <div class="metric-card">
-        <div class="card-icon-badge">🏷️</div>
+        <div class="card-icon-badge badge-rojo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 7l1.5-3h5L16 7"/>
+            <path d="M6 7h12l1 4c.7 3-2 8-7 8s-7.7-5-7-8l1-4Z"/>
+            <circle cx="12" cy="13" r="1.6"/>
+          </svg>
+        </div>
         <div class="card-content">
           <span>Saldo por pagar</span>
           <h2>{{ totalEgresos | currency:'Q ':'symbol':'1.2-2' }}</h2>
@@ -83,7 +108,13 @@
 
       <!-- 3. Ahorros -->
       <div class="metric-card ahorros-card">
-        <div class="card-icon-badge">🏦</div>
+        <div class="card-icon-badge badge-verde">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 7l1.5-3h5L16 7"/>
+            <path d="M6 7h12l1 4c.7 3-2 8-7 8s-7.7-5-7-8l1-4Z"/>
+            <circle cx="12" cy="13" r="1.6"/>
+          </svg>
+        </div>
         <div class="card-content">
           <span>Ahorros</span>
           <h2>{{ gastoPorCategoria('ahorro') | currency:'Q ':'symbol':'1.2-2' }}</h2>
@@ -92,7 +123,12 @@
 
       <!-- 4. Porcentaje Ingresos -->
       <div class="metric-card">
-        <div class="card-icon-badge dark-bg">📊</div>
+        <div class="card-icon-badge dark-bg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+            <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+          </svg>
+        </div>
         <div class="card-content">
           <span>Porcentaje Ingresos</span>
           <h2>{{ totalIngresos > 0 ? ((totalEgresos / totalIngresos) * 100 | number:'1.1-1') : 0 }}%</h2>
@@ -176,12 +212,21 @@
   <!-- MODAL PARA NUEVO MOVIMIENTO -->
   @if (mostrarFormulario) {
     <div class="modal-fondo" (click)="cerrarFormulario()">
-      <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal" (click)="$event.stopPropagation()" (keydown.enter)="guardarMovimiento()">
         <h2>Nuevo movimiento</h2>
 
         <label for="descripcion">Descripción</label>
-        <input id="descripcion" type="text" [(ngModel)]="nuevo.descripcion"
-               (blur)="sugerirCategoria()" placeholder="Ej. Recibo de luz" />
+        <input #descripcionInput id="descripcion" type="text" [(ngModel)]="nuevo.descripcion"
+               (blur)="sugerirCategoria()" (input)="sugerirCategoria()" placeholder="Ej. Recibo de luz" />
+        @if (errores.descripcion) {
+          <p class="error">{{ errores.descripcion }}</p>
+        }
+
+        <label for="fecha">Fecha</label>
+        <input id="fecha" type="date" [(ngModel)]="nuevo.fecha" />
+        @if (errores.fecha) {
+          <p class="error">{{ errores.fecha }}</p>
+        }
 
         <label>Tipo</label>
         <div class="tipo-selector">
@@ -202,13 +247,27 @@
         }
 
         <label for="monto">Monto</label>
-        <input id="monto" type="number" [(ngModel)]="nuevo.monto" placeholder="0.00" min="0" />
+        <div class="input-monto">
+          <span class="input-monto__prefijo">Q</span>
+          <input id="monto" type="number" [(ngModel)]="nuevo.monto" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        @if (errores.monto) {
+          <p class="error">{{ errores.monto }}</p>
+        }
 
         <div class="modal__acciones">
          <button class="btn btn--fantasma" (click)="cerrarFormulario()">Cancelar</button>
          <button class="btn btn--primario" (click)="guardarMovimiento()">Guardar</button>
         </div>
       </div>
+    </div>
+  }
+
+  <!-- TOAST DE CONFIRMACIÓN -->
+  @if (mostrarToast) {
+    <div class="toast">
+      <span class="toast__icono">✓</span>
+      <span>{{ mensajeToast }}</span>
     </div>
   }
 
