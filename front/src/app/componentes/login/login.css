@@ -40,9 +40,10 @@
 .blob{
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
-  opacity: .35;
+  filter: blur(32px);
+  opacity: .32;
   animation: drift 14s ease-in-out infinite;
+  will-change: transform;
 }
 .blob1{width: 280px; height: 280px; background: var(--sage-light); top: -60px; left: -80px;}
 .blob2{width: 220px; height: 220px; background: #cfe3da; bottom: -40px; right: -60px; animation-delay: 3s;}
@@ -307,4 +308,12 @@
   .illustration-container{display: none;}
   .login-right-panel{padding: 20px;}
   .login-card-split{padding: 24px 20px;}
+}
+
+/* Si el sistema del usuario pide reducir movimiento, o si el navegador
+   está batallando, esto apaga toda la decoración animada de una vez */
+@media (prefers-reduced-motion: reduce){
+  .blob, .phone, .deco, .coin{
+    animation: none !important;
+  }
 }

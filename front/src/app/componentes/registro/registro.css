@@ -96,9 +96,10 @@
 .blob{
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
-  opacity: .3;
+  filter: blur(32px);
+  opacity: .28;
   animation: drift 14s ease-in-out infinite;
+  will-change: transform;
 }
 .blob1{width: 280px; height: 280px; background: var(--sage-light); top: -60px; left: -80px;}
 .blob2{width: 220px; height: 220px; background: #123536; bottom: -40px; right: -60px; animation-delay: 3s;}
@@ -218,4 +219,12 @@
   .register-right-panel{order: -1; padding: 32px 16px;}
   .illustration-container{display: none;}
   .register-left-panel{padding: 24px 20px;}
+}
+
+/* Si el sistema del usuario pide reducir movimiento, esto apaga
+   toda la decoración animada de una vez (accesibilidad + rendimiento) */
+@media (prefers-reduced-motion: reduce){
+  .blob, .deco, .coin{
+    animation: none !important;
+  }
 }
