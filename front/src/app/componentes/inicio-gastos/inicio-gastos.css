@@ -103,12 +103,13 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #111827;
+  background: transparent;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  overflow: hidden;
 }
 
 .user-info {
@@ -199,6 +200,23 @@
   background-color: #ebebe9;
 }
 
+summary.select-menu {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.select-menu::-webkit-details-marker {
+  display: none;
+}
+
+summary.select-menu::marker {
+  content: "";
+}
+
+.menu-dropdown--vista[open] > summary .menu-dropdown__chevron {
+  transform: rotate(180deg);
+}
+
 .menu-dropdown__chevron {
   flex-shrink: 0;
   transition: transform 0.2s ease;
@@ -206,6 +224,10 @@
 
 .menu-dropdown__chevron.rotado {
   transform: rotate(180deg);
+}
+
+.menu-dropdown__chevron--claro {
+  color: #fff;
 }
 
 .menu-dropdown__list {
@@ -264,6 +286,11 @@
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.icono-filtro.rotado {
+  transform: rotate(180deg);
 }
 
 /* 4 Tarjetas Métricas Superiores */
@@ -342,34 +369,7 @@
   transition: color 0.25s ease;
 }
 
-/* Al pasar el mouse sobre la tarjeta, el círculo se rellena con su color y el ícono se pone blanco */
-.metric-card:hover .card-icon-badge.badge-teal {
-  background-color: var(--verde-oscuro);
-}
-.metric-card:hover .card-icon-badge.badge-teal svg {
-  color: #fff;
-}
-
-.metric-card:hover .card-icon-badge.badge-rojo {
-  background-color: var(--rojo);
-}
-.metric-card:hover .card-icon-badge.badge-rojo svg {
-  color: #fff;
-}
-
-.metric-card:hover .card-icon-badge.badge-verde {
-  background-color: var(--verde);
-}
-.metric-card:hover .card-icon-badge.badge-verde svg {
-  color: #fff;
-}
-
-.metric-card:hover .card-icon-badge.dark-bg {
-  background-color: #fff;
-}
-.metric-card:hover .card-icon-badge.dark-bg svg {
-  color: #111827;
-}
+/* Los íconos ahora son imágenes PNG con su color propio, ya no se rellena el círculo al hacer hover */
 
 .card-icon-badge.dark-bg { background: #111827; }
 
