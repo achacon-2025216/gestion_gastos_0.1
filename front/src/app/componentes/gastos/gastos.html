@@ -1,1 +1,115 @@
-<p>gastos works!</p>
+<div class="dashboard-container">
+  <!-- Navbar -->
+  <header class="top-navbar">
+    <div class="logo-section">
+      <span class="logo-text">Gasto<span>Check</span></span>
+    </div>
+    <nav class="nav-links">
+      <a routerLink="/inicio-gastos" class="nav-item active">Inicio</a>
+      <a routerLink="/analisis" class="nav-item">Análisis</a>
+      <a routerLink="/ahorros" class="nav-item">Ahorros</a>
+    </nav>
+    <div class="user-profile">
+      <div class="avatar-circle">JR</div>
+      <div>
+        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase;">User</div>
+        <div style="font-size:14px; font-weight:700;">Jack Rowe</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bienvenida -->
+  <div class="welcome-banner">
+    <div>
+      <h1>Gestión de Gastos</h1>
+      <p>Administra, filtra y mantén el control detallado de cada salida de dinero.</p>
+    </div>
+    <button class="btn--primario">+ Nuevo Gasto</button>
+  </div>
+
+  <!-- Métricas -->
+  <div class="metrics-grid">
+    <div class="metric-card dark-card">
+      <span>Gasto Total del Mes</span>
+      <h2>-Q 735.00</h2>
+      <div class="card-icon-badge" style="background:rgba(255,255,255,0.15);">📉</div>
+    </div>
+    <div class="metric-card">
+      <span>Categoría más alta</span>
+      <h2 style="font-size:22px;">Canasta Básica</h2>
+      <span style="font-size:12px; color:#64748b;">Q 380.00 (51.7%)</span>
+      <div class="card-icon-badge badge-rojo">🛒</div>
+    </div>
+    <div class="metric-card">
+      <span>Transacciones</span>
+      <h2>3 Registros</h2>
+      <span style="font-size:12px; color:#64748b;">Mes actual</span>
+      <div class="card-icon-badge badge-azul">📋</div>
+    </div>
+  </div>
+
+  <!-- Tabla + Panel -->
+  <div class="bottom-section">
+    <div class="movimientos-card">
+      <div class="movimientos__encabezado">
+        <h2>Movimientos del mes</h2>
+      </div>
+      <div class="table-toolbar">
+        <input type="text" placeholder="Buscar por descripción..." class="search-input">
+        <select class="filter-select">
+          <option>Todas las categorías</option>
+          <option>Canasta Básica</option>
+          <option>Servicios del Hogar</option>
+          <option>Transporte</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tabla">
+          <thead>
+            <tr><th>FECHA</th><th>DESCRIPCIÓN</th><th>CATEGORÍA</th><th>MONTO</th><th>ACCIÓN</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>03/08/2026</td>
+              <td>Supermercado La Torre</td>
+              <td><span class="badge category">Canasta Básica</span></td>
+              <td class="text-red">-Q 380.00</td>
+              <td><button class="btn-delete">✕</button></td>
+            </tr>
+            <tr>
+              <td>05/08/2026</td>
+              <td>Recibo de luz</td>
+              <td><span class="badge category">Servicios del Hogar</span></td>
+              <td class="text-red">-Q 95.00</td>
+              <td><button class="btn-delete">✕</button></td>
+            </tr>
+            <tr>
+              <td>07/08/2026</td>
+              <td>Gasolinera Shell</td>
+              <td><span class="badge category">Transporte</span></td>
+              <td class="text-red">-Q 60.00</td>
+              <td><button class="btn-delete">✕</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div>
+        <h3>Estado del Presupuesto</h3>
+        <p class="panel-desc">Has consumido el 73.5% de tu meta límite de gastos mensuales.</p>
+        <div class="progress-bar-container">
+          <div class="progress-fill" style="width:73.5%;"></div>
+        </div>
+        <div class="budget-details">
+          <div class="budget-item"><span>Límite Mensual</span><strong>Q 1,000.00</strong></div>
+          <div class="budget-item"><span>Disponible</span><strong class="text-green">Q 265.00</strong></div>
+        </div>
+      </div>
+      <div class="tip-box">
+        💡 <b>Consejo:</b> Tus gastos en transporte se han reducido un 12% en comparación al mes pasado. ¡Buen trabajo!
+      </div>
+    </div>
+  </div>
+</div>
