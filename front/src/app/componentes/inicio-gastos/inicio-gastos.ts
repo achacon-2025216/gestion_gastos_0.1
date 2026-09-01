@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 interface Movimiento {
   id: number;
@@ -14,7 +15,7 @@ interface Movimiento {
 @Component({
   selector: 'app-inicio-gastos',
   standalone: true,
-  imports: [CommonModule, FormsModule, CurrencyPipe, DatePipe, DecimalPipe],
+  imports: [CommonModule, FormsModule, CurrencyPipe, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './inicio-gastos.html',
   styleUrls: ['./inicio-gastos.css']
 })
@@ -96,7 +97,6 @@ export class InicioGastos {
     if (total === 0) return 'conic-gradient(#e5e7eb 0% 100%)';
 
     let acumulado = 0;
-    // Colores mapeados al orden visual: Canasta (verde claro), Servicios (menta), Transporte (gris azulado), Ahorro (verde oscuro)
     const colores = ['#86efac', '#a7f3d0', '#94a3b8', '#0f4c42'];
     
     const categoriasOrdenadas = [
@@ -159,7 +159,7 @@ export class InicioGastos {
   guardarMovimiento() {
     this.errores = {};
     if (!this.nuevo.descripcion.trim()) {
-      this.errores['descripcion'] = 'La descripción es obligatoria.';
+      this.errores['descripcion'] = 'La descripción is obligatoria.';
     }
     if (!this.nuevo.fecha) {
       this.errores['fecha'] = 'Selecciona una fecha.';

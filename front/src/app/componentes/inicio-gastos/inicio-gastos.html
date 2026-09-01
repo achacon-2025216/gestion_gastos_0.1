@@ -1,3 +1,4 @@
+<!-- Enlace opcional directo al archivo CSS si necesitas referenciarlo explícitamente aquí -->
 <div class="dashboard-container">
 
   <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
@@ -34,7 +35,9 @@
       <p>Mide tus gastos sin cansarte</p>
     </div>
     <div class="welcome-banner__acciones">
-      <details class="menu-dropdown menu-dropdown--vista">
+      
+      <!-- MENÚ DESPLEGABLE ACTUALIZADO PARA CAMBIAR DE VISTA -->
+     <details class="menu-dropdown menu-dropdown--vista">
         <summary class="select-menu">
           <span>Menú</span>
           <svg class="menu-dropdown__chevron" viewBox="0 0 12 8" width="12" height="8">
@@ -42,7 +45,14 @@
           </svg>
         </summary>
         <ul class="menu-dropdown__list">
-          <li class="activo">Mis gastos</li>
+          
+          <!-- Opción única para ir a la gestión de gastos -->
+          <li class="activo">
+            <a routerLink="/gastos" style="color: inherit; text-decoration: none; display: block; width: 100%;">
+              Gestión de Gastos
+            </a>
+          </li>
+
         </ul>
       </details>
 
