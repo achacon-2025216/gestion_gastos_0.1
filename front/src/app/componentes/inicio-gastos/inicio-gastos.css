@@ -371,7 +371,6 @@ summary.select-menu::marker {
 
 /* Los íconos ahora son imágenes PNG con su color propio, ya no se rellena el círculo al hacer hover */
 
-.card-icon-badge.dark-bg { background: #111827; }
 
 .card-icon-badge svg {
   width: 22px;
