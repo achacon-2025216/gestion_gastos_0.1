@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth';
 
 interface Movimiento {
   id: number;
@@ -20,6 +21,12 @@ interface Movimiento {
   styleUrls: ['./inicio-gastos.css']
 })
 export class InicioGastos {
+  private authService = inject(AuthService);
+
+  get currentUser() {
+    return this.authService.getCurrentUser();
+  }
+
   menuAbierto = false;
   menuSeleccionado = 'Mis gastos';
   opcionesMenu = ['Mis gastos', 'Historial', 'Configuración'];
@@ -62,7 +69,7 @@ export class InicioGastos {
   ];
 
   esAdmin(): boolean {
-    return false;
+    return this.authService.isAdmin();
   }
 
   get totalIngresos(): number {

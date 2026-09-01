@@ -18,11 +18,11 @@
       </button>
       <div class="user-profile">
         <div class="avatar-circle">
-          <img src="/img/icon/icon_user.png" alt="Usuario" width="34" height="34" style="object-fit: contain;" />
+          <img src="/img/icon/icon_user.png" alt="Usuario" width="32" height="32" style="object-fit: contain;" />
         </div>
         <div class="user-info">
           <span class="user-label">User</span>
-          <span class="user-name">Jack Rowe</span>
+          <span class="user-name">{{ currentUser?.username || 'Usuario' }}</span>
         </div>
       </div>
     </div>
