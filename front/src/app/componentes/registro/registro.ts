@@ -31,7 +31,7 @@ export class RegistroComponent implements AfterViewInit {
   initGoogleSignIn(): void {
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: '463867676917-g8hga9ugqt9um24hpkoakhrl7jjhbs.apps.googleusercontent.com',
+        client_id: '4463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com',
         callback: (response: any) => this.handleGoogleCredentialResponse(response)
       });
 
