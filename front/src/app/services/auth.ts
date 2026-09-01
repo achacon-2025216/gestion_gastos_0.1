@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
@@ -13,12 +13,54 @@ export class AuthService {
   private apiUrl = 'http://localhost:4000/api';
   private logoutTimer: any;
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private lastRefreshAt = 0;
+  private refreshInProgress = false;
+  private readonly refreshThrottleMs = 10_000;
 
   constructor() {
+    this.listenForUserActivity();
+
     const token = this.getToken();
     if (token) {
       this.autoLogoutWithToken(token);
     }
+  }
+
+  private listenForUserActivity(): void {
+    const activityHandler = () => this.refreshSessionOnActivity();
+
+    for (const eventName of ['mousemove', 'mousedown', 'click', 'keydown', 'touchstart']) {
+      document.addEventListener(eventName, activityHandler, { passive: true });
+    }
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        activityHandler();
+      }
+    });
+  }
+
+  private refreshSessionOnActivity(): void {
+    const token = this.getToken();
+    const now = Date.now();
+
+    if (!token || !this.isLoggedIn() || this.refreshInProgress) return;
+    if (now - this.lastRefreshAt < this.refreshThrottleMs) return;
+
+    this.lastRefreshAt = now;
+    this.refreshInProgress = true;
+
+    this.http.post<{ token: string }>(`${this.apiUrl}/refresh-token`, {}).subscribe({
+      next: response => {
+        this.refreshInProgress = false;
+        this.saveSession(response);
+        console.log('Sesión renovada por actividad del usuario.');
+      },
+      error: () => {
+        this.refreshInProgress = false;
+        this.logout();
+      }
+    });
   }
 
   login(username: string, password: string) {
@@ -91,6 +133,8 @@ export class AuthService {
       clearInterval(this.countdownTimer);
       this.countdownTimer = null;
     }
+    this.lastRefreshAt = 0;
+    this.refreshInProgress = false;
     this.router.navigate(['/login'], { queryParams: { expired: '1' } });
   }
 

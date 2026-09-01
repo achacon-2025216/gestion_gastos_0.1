@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../prisma/generated/prisma/index.js';
 import pg from 'pg';
+import { verifyToken, type AuthRequest } from '../middlewares/authMiddleware.js';
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://postgres:admin@localhost:5432/gestion_gastos?schema=public"
@@ -155,6 +156,28 @@ router.post('/google-login', async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('ERROR EN GOOGLE LOGIN:', error);
     res.status(500).json({ error: 'Error interno al iniciar sesión con Google' });
+  }
+});
+
+// Renueva la sesión por 2 minutos más cuando el usuario sigue activo.
+router.post('/refresh-token', verifyToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Sesión inválida' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(401).json({ error: 'El usuario ya no existe' });
+      return;
+    }
+
+    res.json({ token: createToken(user) });
+  } catch (error) {
+    console.error('ERROR AL RENOVAR TOKEN:', error);
+    res.status(500).json({ error: 'No se pudo renovar la sesión' });
   }
 });
 
