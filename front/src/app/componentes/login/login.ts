@@ -1,8 +1,8 @@
-import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth';
 
 declare var google: any;
 
@@ -14,9 +14,10 @@ declare var google: any;
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
-export class LoginComponent implements AfterViewInit {
-  private http = inject(HttpClient);
+export class LoginComponent implements AfterViewInit, OnInit {
+  private authService: AuthService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   logoSrc: string = 'assets/logo.png'; 
   sessionExpired: boolean = false;
@@ -25,6 +26,15 @@ export class LoginComponent implements AfterViewInit {
   errorMessage: string = '';
 
   @ViewChild('googleBtn', { static: false }) googleBtn!: ElementRef;
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['expired'] === '1') {
+        this.sessionExpired = true;
+        this.errorMessage = 'Tu sesión ha expirado por inactividad. Por favor, ingresa de nuevo.';
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     this.initGoogleSignIn();
@@ -43,8 +53,8 @@ export class LoginComponent implements AfterViewInit {
           { 
             theme: 'outline', 
             size: 'large', 
-            shape: 'pill', 
-            width: '100%'  
+            shape: 'pill'
+            // Nota: Se removió 'width: 100%' para evitar el bloqueo del SDK de Google
           }
         );
       }
@@ -53,16 +63,28 @@ export class LoginComponent implements AfterViewInit {
 
   handleGoogleCredentialResponse(response: any): void {
     try {
-      const token = response.credential;
-      console.log('Token JWT de Google obtenido con éxito:', token);
+      const googleToken = response.credential;
+      console.log('Token de Google capturado correctamente. Enviando al backend...');
 
-      // 1. Guardamos el token en el almacenamiento local para que la app sepa que estás logueado
-      localStorage.setItem('token', token);
+      // Petición al backend en Node.js para generar el token interno limitado a 2 minutos
+      this.authService.loginWithGoogle(googleToken).subscribe({
+        next: (res) => {
+          if (res && res.token) {
+            console.log('¡ÉXITO! Token de 2 minutos aplicado correctamente.');
+            this.router.navigate(['/inicio-gastos']);
+          } else {
+            console.error('El servidor respondió pero no envió un token válido:', res);
+            this.errorMessage = 'Error: El servidor no devolvió el token de sesión.';
+          }
+        },
+        error: (err) => {
+          console.error('ERROR: El backend rechazó la petición o está apagado:', err);
+          this.errorMessage = 'No se pudo conectar con el servidor en el puerto 4000.';
+        }
+      });
 
-      // 2. Redirigimos a la vista principal de gastos
-      this.router.navigate(['/gastos']);
     } catch (error: any) {
-      console.error('Error en el inicio de sesión con Google:', error);
+      console.error('Error interno al procesar Google login:', error);
       this.errorMessage = 'No se pudo completar el acceso con Google.';
     }
   }
@@ -74,6 +96,16 @@ export class LoginComponent implements AfterViewInit {
     }
 
     this.errorMessage = '';
-    console.log('Iniciando sesión con:', this.username, this.password);
+
+    this.authService.login(this.username, this.password).subscribe({
+      next: (res) => {
+        console.log('Login tradicional exitoso:', res);
+        this.router.navigate(['/inicio-gastos']);
+      },
+      error: (err) => {
+        console.error('Error en el login:', err);
+        this.errorMessage = err.error?.message || 'Usuario o contraseña incorrectos.';
+      }
+    });
   }
 }

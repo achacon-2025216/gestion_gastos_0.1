@@ -1,116 +1,147 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
-interface AuthResponse {
-  token: string;
-  role: string;
-  message?: string;
-}
-
-interface JwtPayload {
-  exp: number; // segundos desde epoch, viene del backend
-  [key: string]: any;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api';
-  private logoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
-  constructor(private http: HttpClient, private router: Router) {
-    // Si el usuario recarga la página y ya tenía token, reprograma el auto-logout
-    if (this.isLoggedIn()) {
-      this.scheduleAutoLogout();
+  private apiUrl = 'http://localhost:4000/api';
+  private logoutTimer: any;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    const token = this.getToken();
+    if (token) {
+      this.autoLogoutWithToken(token);
     }
   }
 
-  login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }).pipe(
-      tap((res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.role);
-        localStorage.setItem('username', username);
-        this.scheduleAutoLogout();
+  login(username: string, password: string) {
+    return this.http.post<any>(`${this.apiUrl}/login`, { username, password }).pipe(
+      tap(response => {
+        if (response && response.token) {
+          this.setToken(response.token);
+          this.autoLogoutWithToken(response.token);
+        }
       })
     );
   }
 
-  register(username: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, { username, password });
+  register(username: string, password: string) {
+    return this.http.post<any>(`${this.apiUrl}/register`, { username, password }).pipe(
+      tap(response => this.saveSession(response))
+    );
   }
 
-  // expired = true cuando el logout ocurre automáticamente por expiración del token
-  logout(expired: boolean = false): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
+  loginWithGoogle(token: string) {
+    return this.http.post<any>(`${this.apiUrl}/google-login`, { token }).pipe(
+      tap(response => this.saveSession(response))
+    );
+  }
 
-    if (this.logoutTimer) {
-      clearTimeout(this.logoutTimer);
-      this.logoutTimer = null;
+  private saveSession(response: any): void {
+    if (response?.token) {
+      this.setToken(response.token);
+      this.autoLogoutWithToken(response.token);
     }
+  }
 
-    this.router.navigate(['/login'], {
-      queryParams: expired ? { expired: '1' } : {},
-    });
+  setToken(token: string): void {
+    localStorage.setItem('token', token);
   }
 
   getToken(): string | null {
     return localStorage.getItem('token');
   }
 
-  getRole(): string | null {
-    return localStorage.getItem('role');
-  }
-
-  isAdmin(): boolean {
-    return this.getRole() === 'admin';
-  }
-
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) return false;
-
-    const payload = this.decodeToken(token);
-    if (!payload) return false;
-
-    // Si ya expiró, lo tratamos como no logueado
-    return payload.exp * 1000 > Date.now();
-  }
-
-  private decodeToken(token: string): JwtPayload | null {
     try {
-      const payloadBase64 = token.split('.')[1];
-      const payloadJson = atob(payloadBase64);
-      return JSON.parse(payloadJson);
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now();
     } catch {
-      return null;
+      return false;
     }
   }
 
-  // Programa el logout automático justo en el momento en que expira el token
-  private scheduleAutoLogout(): void {
+  isAdmin(): boolean {
     const token = this.getToken();
-    if (!token) return;
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role === 'ADMIN' || payload.role === 'admin';
+    } catch {
+      return false;
+    }
+  }
 
-    const payload = this.decodeToken(token);
-    if (!payload) return;
-
-    const msUntilExpiry = payload.exp * 1000 - Date.now();
-
+  logout(): void {
+    localStorage.removeItem('token');
     if (this.logoutTimer) {
       clearTimeout(this.logoutTimer);
+      this.logoutTimer = null;
     }
-
-    if (msUntilExpiry <= 0) {
-      this.logout(true);
-      return;
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
     }
-
-    this.logoutTimer = setTimeout(() => {
-      this.logout(true);
-    }, msUntilExpiry);
+    this.router.navigate(['/login'], { queryParams: { expired: '1' } });
   }
-} 
+
+  private showRemainingTime(expirationTime: number): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+    }
+
+    const printRemainingTime = () => {
+      const remainingSeconds = Math.max(
+        0,
+        Math.ceil((expirationTime - Date.now()) / 1000)
+      );
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+
+      console.log(
+        `Tiempo restante del token: ${minutes}:${seconds.toString().padStart(2, '0')}`
+      );
+
+      if (remainingSeconds === 0 && this.countdownTimer) {
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+      }
+    };
+
+    printRemainingTime();
+    this.countdownTimer = setInterval(printRemainingTime, 1000);
+  }
+
+  autoLogoutWithToken(token: string): void {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationDate = new Date(payload.exp * 1000);
+      const currentTime = new Date().getTime();
+      const timeLeft = expirationDate.getTime() - currentTime;
+
+      this.showRemainingTime(expirationDate.getTime());
+
+      if (timeLeft <= 0) {
+        this.logout();
+      } else {
+        if (this.logoutTimer) {
+          clearTimeout(this.logoutTimer);
+        }
+        this.logoutTimer = setTimeout(() => {
+          this.logout();
+        }, timeLeft);
+      }
+    } catch (error) {
+      this.logout();
+    }
+  }
+}

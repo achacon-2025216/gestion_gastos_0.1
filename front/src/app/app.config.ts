@@ -1,7 +1,8 @@
 import { ApplicationConfig, provideZonelessChangeDetection, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http'; // <-- Importa withInterceptors
 import { routes } from './app.routes';
+import { authInterceptor } from './interceptors/auth-interceptor'; // <-- Importa tu interceptor
 import { 
   GoogleLoginProvider, 
   SocialAuthServiceConfig, 
@@ -12,8 +13,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(),
-    importProvidersFrom(SocialLoginModule), // <-- Esto registra el SocialAuthService y su configuración correctamente
+    provideHttpClient(
+      withInterceptors([authInterceptor]) // <-- Registra aquí el interceptor para los tokens de 2 minutos
+    ),
+    importProvidersFrom(SocialLoginModule),
     {
       provide: 'SocialAuthServiceConfig',
       useValue: {
@@ -26,7 +29,7 @@ export const appConfig: ApplicationConfig = {
             )
           }
         ],
-        onError: (err) => {
+        onError: (err: any) => { // Tipado explícito 'any' para evitar errores de TypeScript
           console.error(err);
         }
       } as SocialAuthServiceConfig

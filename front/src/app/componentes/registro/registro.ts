@@ -2,7 +2,7 @@ import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth';
 
 declare var google: any;
 
@@ -15,7 +15,7 @@ declare var google: any;
   styleUrls: ['./registro.css']
 })
 export class RegistroComponent implements AfterViewInit {
-  private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   username: string = '';
@@ -52,13 +52,13 @@ export class RegistroComponent implements AfterViewInit {
 
   handleGoogleCredentialResponse(response: any): void {
     const token = response.credential;
-    console.log('Token JWT de Google obtenido en Registro:', token);
-    
-    this.successMessage = '¡Registro completado con éxito!';
-    this.errorMessage = '';
-
-    // Redirige a la vista principal de la app tras autenticarse con Google
-    this.router.navigate(['/gastos']);
+    this.authService.loginWithGoogle(token).subscribe({
+      next: () => this.router.navigate(['/inicio-gastos']),
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'No se pudo completar el registro con Google.';
+        this.successMessage = '';
+      }
+    });
   }
 
   onRegister(): void {
@@ -69,7 +69,15 @@ export class RegistroComponent implements AfterViewInit {
     }
 
     this.errorMessage = '';
-    this.successMessage = '¡Cuenta creada con éxito!';
-    console.log('Registrando con:', this.username, this.password);
+    this.authService.register(this.username, this.password).subscribe({
+      next: () => {
+        this.successMessage = '¡Cuenta creada con éxito!';
+        this.router.navigate(['/inicio-gastos']);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'No se pudo crear la cuenta.';
+        this.successMessage = '';
+      }
+    });
   }
 }
