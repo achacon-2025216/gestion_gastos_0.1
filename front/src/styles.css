@@ -1,13 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
 html, body {
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  overflow: hidden !important;
-  background-color: #265957; /* Fondo de respaldo acorde al tema de la app */
+  background-color: #265957 !important; /* El verde original de tu app */
 }
 
 body {
   display: block;
-} 
+}
