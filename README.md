@@ -105,6 +105,12 @@ pnpm approve-builds
 pnpm add -D @angular/cli
 ```
 
+### Implementar api de google
+
+```bash
+pnpm add @abacritt/angularx-social-login
+```
+
 ### 4. Levantar el servidor de desarrollo
 
 ```bash
