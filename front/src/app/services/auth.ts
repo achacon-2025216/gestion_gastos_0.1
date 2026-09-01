@@ -21,9 +21,14 @@ export class AuthService {
     this.listenForUserActivity();
 
     const token = this.getToken();
-    if (token) {
+    if (token && !this.isPublicAuthPage()) {
       this.autoLogoutWithToken(token);
     }
+  }
+
+  private isPublicAuthPage(url: string = this.router.url): boolean {
+    const path = url.split('?')[0];
+    return path === '/' || path === '/login' || path === '/registro';
   }
 
   private listenForUserActivity(): void {
@@ -35,7 +40,16 @@ export class AuthService {
 
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
-        activityHandler();
+        if (this.isPublicAuthPage(event.urlAfterRedirects)) {
+          this.stopSessionTimers();
+          return;
+        }
+
+        const token = this.getToken();
+        if (token) {
+          this.autoLogoutWithToken(token);
+          activityHandler();
+        }
       }
     });
   }
@@ -44,7 +58,7 @@ export class AuthService {
     const token = this.getToken();
     const now = Date.now();
 
-    if (!token || !this.isLoggedIn() || this.refreshInProgress) return;
+    if (this.isPublicAuthPage() || !token || !this.isLoggedIn() || this.refreshInProgress) return;
     if (now - this.lastRefreshAt < this.refreshThrottleMs) return;
 
     this.lastRefreshAt = now;
@@ -65,17 +79,12 @@ export class AuthService {
 
   login(username: string, password: string) {
     return this.http.post<any>(`${this.apiUrl}/login`, { username, password }).pipe(
-      tap(response => {
-        if (response && response.token) {
-          this.setToken(response.token);
-          this.autoLogoutWithToken(response.token);
-        }
-      })
+      tap(response => this.saveSession(response))
     );
   }
 
-  register(username: string, password: string) {
-    return this.http.post<any>(`${this.apiUrl}/register`, { username, password }).pipe(
+  register(username: string, email: string, password: string) {
+    return this.http.post<any>(`${this.apiUrl}/register`, { username, email, password }).pipe(
       tap(response => this.saveSession(response))
     );
   }
@@ -89,7 +98,9 @@ export class AuthService {
   private saveSession(response: any): void {
     if (response?.token) {
       this.setToken(response.token);
-      this.autoLogoutWithToken(response.token);
+      if (!this.isPublicAuthPage()) {
+        this.autoLogoutWithToken(response.token);
+      }
     }
   }
 
@@ -123,8 +134,26 @@ export class AuthService {
     }
   }
 
+  getCurrentUser(): { username: string; role: string } | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return { username: payload.username || 'Usuario', role: payload.role || 'user' };
+    } catch {
+      return null;
+    }
+  }
+
   logout(): void {
     localStorage.removeItem('token');
+    this.stopSessionTimers();
+    this.lastRefreshAt = 0;
+    this.refreshInProgress = false;
+    this.router.navigate(['/login'], { queryParams: { expired: '1' } });
+  }
+
+  private stopSessionTimers(): void {
     if (this.logoutTimer) {
       clearTimeout(this.logoutTimer);
       this.logoutTimer = null;
@@ -133,9 +162,6 @@ export class AuthService {
       clearInterval(this.countdownTimer);
       this.countdownTimer = null;
     }
-    this.lastRefreshAt = 0;
-    this.refreshInProgress = false;
-    this.router.navigate(['/login'], { queryParams: { expired: '1' } });
   }
 
   private showRemainingTime(expirationTime: number): void {

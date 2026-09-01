@@ -18,20 +18,28 @@ const JWT_SECRET: string = process.env.JWT_SECRET || 'cambia_esto_en_produccion'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com';
 const TOKEN_EXPIRATION = '2m';
 
-const createToken = (user: { id: number; username: string; role: string }) =>
-  jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
+const createToken = (user: { id: number; username: string; email?: string | null; role: string }) => {
+  const displaySource = user.username.startsWith('google_')
+    ? user.email || 'Usuario Google'
+    : user.username;
+  const displayName = displaySource.includes('@')
+    ? displaySource.split('@')[0]
+    : displaySource;
+
+  return jwt.sign(
+    { id: user.id, username: displayName, role: user.role },
     JWT_SECRET,
     { expiresIn: TOKEN_EXPIRATION }
   );
+};
 
 // POST /api/register
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
 
-    if (!username || !password) {
-      res.status(400).json({ error: 'El usuario y la contraseña son obligatorios' });
+    if (!username || !email || !password) {
+      res.status(400).json({ error: 'El usuario, correo y contraseña son obligatorios' });
       return;
     }
 
@@ -44,11 +52,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail) {
+      res.status(400).json({ error: 'El correo electrónico ya está registrado' });
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.user.create({
       data: {
         username,
+        email,
         password: hashedPassword,
         role: 'user'
       }
@@ -77,8 +92,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { username }
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username },
+          { email: username.toLowerCase() }
+        ]
+      }
     });
 
     if (!user) {
@@ -137,13 +157,31 @@ router.post('/google-login', async (req: Request, res: Response): Promise<void> 
 
     const databaseUsername = `google_${profile.sub}`;
     let user = await prisma.user.findUnique({ where: { username: databaseUsername } });
+
+    // Si el correo verificado de Google ya pertenece a una cuenta local,
+    // usamos esa misma cuenta para evitar usuarios y correos duplicados.
+    if (profile.email) {
+      const userWithSameEmail = await prisma.user.findUnique({
+        where: { email: profile.email.toLowerCase() }
+      });
+      if (userWithSameEmail) {
+        user = userWithSameEmail;
+      }
+    }
+
     if (!user) {
       user = await prisma.user.create({
         data: {
           username: databaseUsername,
+          email: profile.email ?? null,
           password: await bcrypt.hash(`${profile.sub}:${JWT_SECRET}`, 10),
           role: 'user'
         }
+      });
+    } else if (profile.email && !user.email && user.username === databaseUsername) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { email: profile.email }
       });
     }
 
