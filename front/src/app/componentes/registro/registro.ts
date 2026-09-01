@@ -19,6 +19,7 @@ export class RegistroComponent implements AfterViewInit {
   private router = inject(Router);
 
   username: string = '';
+  email: string = '';
   password: string = '';
   errorMessage: string = '';
   successMessage: string = '';
@@ -62,14 +63,14 @@ export class RegistroComponent implements AfterViewInit {
   }
 
   onRegister(): void {
-    if (!this.username || !this.password) {
+    if (!this.username || !this.email || !this.password) {
       this.errorMessage = 'Por favor, completa todos los campos.';
       this.successMessage = '';
       return;
     }
 
     this.errorMessage = '';
-    this.authService.register(this.username, this.password).subscribe({
+    this.authService.register(this.username, this.email, this.password).subscribe({
       next: () => {
         this.successMessage = '¡Cuenta creada con éxito!';
         this.router.navigate(['/inicio-gastos']);
