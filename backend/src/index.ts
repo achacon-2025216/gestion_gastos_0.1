@@ -3,7 +3,7 @@ import cors from 'cors';
 import authRoutes from './controllers/authController.js';// Ajusta el nombre de tu archivo
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.use(cors({
   origin: 'http://localhost:4200',

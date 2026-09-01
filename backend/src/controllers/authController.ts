@@ -1,28 +1,37 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import { PrismaClient } from '../../prisma/generated/prisma/index.js';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../../prisma/generated/prisma/index.js';
+import pg from 'pg';
 
-// Conexión directa para evitar errores de variables de entorno vacías
-const pool = new pg.Pool({ 
-  connectionString: "postgresql://postgres:admin@localhost:5432/gestion_gastos?schema=public" 
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL || "postgresql://postgres:admin@localhost:5432/gestion_gastos?schema=public"
 });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'cambia_esto_en_produccion';
 const router: Router = Router();
+const JWT_SECRET: string = process.env.JWT_SECRET || 'cambia_esto_en_produccion';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com';
+const TOKEN_EXPIRATION = '2m';
 
-// Registro de usuario
-export const register = async (req: Request, res: Response) => {
+const createToken = (user: { id: number; username: string; role: string }) =>
+  jwt.sign(
+    { id: user.id, username: user.username, role: user.role },
+    JWT_SECRET,
+    { expiresIn: TOKEN_EXPIRATION }
+  );
+
+// POST /api/register
+router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ error: 'El usuario y la contraseña son obligatorios' });
+      res.status(400).json({ error: 'El usuario y la contraseña son obligatorios' });
+      return;
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -30,7 +39,8 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
+      res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,24 +53,27 @@ export const register = async (req: Request, res: Response) => {
       }
     });
 
-    return res.status(201).json({
+    const token = createToken(newUser);
+
+    res.status(201).json({
       message: '¡Usuario registrado con éxito!',
+      token,
       user: { id: newUser.id, username: newUser.username, role: newUser.role }
     });
-
   } catch (error: any) {
     console.error('ERROR EN REGISTRO:', error);
-    return res.status(500).json({ error: 'Error interno al registrar el usuario' });
+    res.status(500).json({ error: 'Error interno al registrar el usuario' });
   }
-};
+});
 
-// Inicio de sesión
-export const login = async (req: Request, res: Response) => {
+// POST /api/login (Token configurado a 2 minutos)
+router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ error: 'Faltan credenciales' });
+      res.status(400).json({ error: 'Faltan credenciales' });
+      return;
     }
 
     const user = await prisma.user.findUnique({
@@ -68,34 +81,81 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+      res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+      return;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+      res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+      return;
     }
 
-    const token = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '10m' }
-    );
+    // Token generado con 'id' y duración de 2 minutos
+    const token = createToken(user);
 
-    return res.json({
+    res.json({
       message: 'Login exitoso',
       token,
-      role: user.role
+      role: user.role,
+      user: { id: user.id, username: user.username, role: user.role }
     });
-
   } catch (error: any) {
     console.error('ERROR EN LOGIN:', error);
-    return res.status(500).json({ error: 'Error interno al iniciar sesión' });
+    res.status(500).json({ error: 'Error interno al iniciar sesión' });
   }
-};
+});
 
-// Definición de las rutas del Router
-router.post('/register', register);
-router.post('/login', login);
+// POST /api/google-login
+router.post('/google-login', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token: googleToken } = req.body;
+    if (!googleToken) {
+      res.status(400).json({ error: 'Token de Google no proporcionado' });
+      return;
+    }
+
+    const googleResponse = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(googleToken)}`
+    );
+    if (!googleResponse.ok) {
+      res.status(401).json({ error: 'Token de Google inválido o expirado' });
+      return;
+    }
+
+    const profile = await googleResponse.json() as {
+      aud?: string;
+      sub?: string;
+      email?: string;
+      email_verified?: string;
+    };
+    if (profile.aud !== GOOGLE_CLIENT_ID || !profile.sub || profile.email_verified !== 'true') {
+      res.status(401).json({ error: 'La credencial de Google no es válida para esta aplicación' });
+      return;
+    }
+
+    const databaseUsername = `google_${profile.sub}`;
+    let user = await prisma.user.findUnique({ where: { username: databaseUsername } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          username: databaseUsername,
+          password: await bcrypt.hash(`${profile.sub}:${JWT_SECRET}`, 10),
+          role: 'user'
+        }
+      });
+    }
+
+    const token = createToken(user);
+    res.json({
+      message: 'Acceso con Google exitoso',
+      token,
+      user: { id: user.id, username: profile.email || user.username, role: user.role }
+    });
+  } catch (error) {
+    console.error('ERROR EN GOOGLE LOGIN:', error);
+    res.status(500).json({ error: 'Error interno al iniciar sesión con Google' });
+  }
+});
 
 export default router;

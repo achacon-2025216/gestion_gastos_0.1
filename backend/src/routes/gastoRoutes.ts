@@ -4,7 +4,7 @@ import { verifyToken } from '../middlewares/authMiddleware.js';
 
 const router: Router = Router();
 
-// Esta ruta intercepta el token, valida que sea correcto y devuelve solo los gastos del usuario autenticado
+// Ruta protegida que requiere token válido y no expirado
 router.get('/gastos', verifyToken, getMovimientos);
 
 export default router;
