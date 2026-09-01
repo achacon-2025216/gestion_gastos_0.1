@@ -1,7 +1,8 @@
-import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 declare var google: any;
 
@@ -14,6 +15,9 @@ declare var google: any;
   styleUrls: ['./login.css']
 })
 export class LoginComponent implements AfterViewInit {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
   logoSrc: string = 'assets/logo.png'; 
   sessionExpired: boolean = false;
   username: string = '';
@@ -48,7 +52,19 @@ export class LoginComponent implements AfterViewInit {
   }
 
   handleGoogleCredentialResponse(response: any): void {
-    console.log('Token JWT de Google obtenido:', response.credential);
+    try {
+      const token = response.credential;
+      console.log('Token JWT de Google obtenido con éxito:', token);
+
+      // 1. Guardamos el token en el almacenamiento local para que la app sepa que estás logueado
+      localStorage.setItem('token', token);
+
+      // 2. Redirigimos a la vista principal de gastos
+      this.router.navigate(['/gastos']);
+    } catch (error: any) {
+      console.error('Error en el inicio de sesión con Google:', error);
+      this.errorMessage = 'No se pudo completar el acceso con Google.';
+    }
   }
 
   onLogin(): void {

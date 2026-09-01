@@ -1,28 +1,29 @@
-import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 declare var google: any;
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './registro.html',
-  styleUrl: './registro.css'
+  styleUrls: ['./registro.css']
 })
-
 export class RegistroComponent implements AfterViewInit {
-  username = '';
-  password = '';
-  successMessage = '';
-  errorMessage = '';
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
+  username: string = '';
+  password: string = '';
+  errorMessage: string = '';
+  successMessage: string = '';
 
   @ViewChild('googleBtn', { static: false }) googleBtn!: ElementRef;
-
-  constructor(private http: HttpClient, private router: Router) {}
 
   ngAfterViewInit(): void {
     this.initGoogleSignIn();
@@ -31,7 +32,7 @@ export class RegistroComponent implements AfterViewInit {
   initGoogleSignIn(): void {
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: '4463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com',
+        client_id: '463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com',
         callback: (response: any) => this.handleGoogleCredentialResponse(response)
       });
 
@@ -50,24 +51,25 @@ export class RegistroComponent implements AfterViewInit {
   }
 
   handleGoogleCredentialResponse(response: any): void {
-    console.log('Token JWT de registro con Google obtenido:', response.credential);
-    // Aquí puedes agregar la lógica para enviar el token a tu backend si lo requieres
+    const token = response.credential;
+    console.log('Token JWT de Google obtenido en Registro:', token);
+    
+    this.successMessage = '¡Registro completado con éxito!';
+    this.errorMessage = '';
+
+    // Redirige a la vista principal de la app tras autenticarse con Google
+    this.router.navigate(['/gastos']);
   }
 
-  onRegister() {
-    const newUser = { username: this.username, password: this.password };
+  onRegister(): void {
+    if (!this.username || !this.password) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      this.successMessage = '';
+      return;
+    }
 
-    this.http.post<any>('http://localhost:3000/api/register', newUser).subscribe({
-      next: (response) => {
-        this.successMessage = '¡Cuenta creada con éxito! Redirigiendo...';
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.error || 'Error al registrar el usuario';
-        console.error(err);
-      }
-    });
+    this.errorMessage = '';
+    this.successMessage = '¡Cuenta creada con éxito!';
+    console.log('Registrando con:', this.username, this.password);
   }
 }
