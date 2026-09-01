@@ -104,7 +104,7 @@ export class LoginComponent implements AfterViewInit, OnInit {
       },
       error: (err) => {
         console.error('Error en el login:', err);
-        this.errorMessage = err.error?.message || 'Usuario o contraseña incorrectos.';
+        this.errorMessage = err.error?.error || err.error?.message || 'Usuario o contraseña incorrectos.';
       }
     });
   }

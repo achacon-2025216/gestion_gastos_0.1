@@ -85,8 +85,8 @@
 
       <form (submit)="onLogin(); $event.preventDefault()">
         <div class="input-group">
-          <label>Usuario</label>
-          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+          <label>Usuario o correo</label>
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario o correo" required />
         </div>
 
         <div class="input-group">
