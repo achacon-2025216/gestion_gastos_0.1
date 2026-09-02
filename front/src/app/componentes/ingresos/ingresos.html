@@ -35,12 +35,12 @@
   <div class="stats">
     <div class="stat-card">
       <div class="stat-top">
-        <span class="stat-label">INGRESOS</span>
+        <span class="stat-label">SALDO DISPONIBLE</span>
         <div class="stat-icon icon-green">
           <img src="/img/icon/icon_verde_dinero.png" alt="Ingresos">
         </div>
       </div>
-      <div class="stat-value positive">Q {{ totalIngreso | number:'1.2-2' }}</div>
+      <div class="stat-value positive">Q {{ saldoDisponible | number:'1.2-2' }}</div>
     </div>
 
     <div class="stat-card">
@@ -60,7 +60,7 @@
           <img src="/img/icon/icon_negro_factura.png" alt="Transacciones">
         </div>
       </div>
-      <div class="stat-value">{{ movimientos.length }}</div>
+      <div class="stat-value">{{ transferencias.length }}</div>
     </div>
   </div>
 
@@ -72,9 +72,7 @@
         <input type="text" placeholder="Buscar por descripción..." [(ngModel)]="searchText">
         <select [(ngModel)]="sourceFilter">
           <option value="">Todas las fuentes</option>
-          <option value="Salario">Salario</option>
-          <option value="Freelance">Freelance</option>
-          <option value="Otros">Otros</option>
+          <option *ngFor="let fuente of fuentesDisponibles" [value]="fuente">{{ fuente }}</option>
         </select>
       </div>
       <table>
@@ -137,11 +135,8 @@
       <input type="text" id="iDesc" name="descripcion" placeholder="Ej. Sueldo quincena"
              [(ngModel)]="newIncome.descripcion" required>
       <label for="iSource">Fuente</label>
-      <select id="iSource" name="fuente" [(ngModel)]="newIncome.fuente">
-        <option value="Salario">Salario</option>
-        <option value="Freelance">Freelance</option>
-        <option value="Otros">Otros</option>
-      </select>
+      <input type="text" id="iSource" name="fuente" placeholder="Ej. Salario, ventas o negocio"
+             [(ngModel)]="newIncome.fuente" required>
       <label for="iAmount">Monto</label>
       <input type="number" id="iAmount" name="monto" placeholder="0.00" min="0.01" step="0.01"
              [(ngModel)]="newIncome.monto" required>
