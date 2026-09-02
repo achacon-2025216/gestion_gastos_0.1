@@ -12,15 +12,20 @@
       <button class="search-btn" aria-label="Buscar">
         <img src="/img/icon/icon_lupa.png" alt="" />
       </button>
-      <div class="user">
-        <div class="avatar">
-          <img src="/img/icon/icon_user.png" alt="Usuario" />
+      <details class="user-menu">
+        <summary class="user" aria-label="Abrir menú de usuario">
+          <div class="avatar">
+            <img src="/img/icon/icon_user.png" alt="" />
+          </div>
+          <div class="user-text">
+            <span class="u-label">User</span>
+            <span class="u-name">{{ username }}</span>
+          </div>
+        </summary>
+        <div class="user-menu__dropdown">
+          <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
         </div>
-        <div class="user-text">
-          <span class="u-label">User</span>
-          <span class="u-name">{{ username }}</span>
-        </div>
-      </div>
+      </details>
     </div>
   </header>
 

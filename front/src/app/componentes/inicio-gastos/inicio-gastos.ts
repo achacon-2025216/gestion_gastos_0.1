@@ -225,6 +225,11 @@ export class InicioGastos
       .isAdmin();
   }
 
+  cerrarSesion(): void {
+
+    this.authService.logout();
+  }
+
   /**
    * Total de ingresos.
    *
@@ -270,6 +275,36 @@ export class InicioGastos
 
     return this.totalIngresos -
       this.totalEgresos;
+  }
+
+  /**
+   * Egresos que todavía se consideran pendientes de pago.
+   * Un pago o una transferencia ya realizados descuentan del saldo activo,
+   * pero no deben mostrarse como una deuda pendiente.
+   */
+  get saldoPorPagar(): number {
+
+    return this.movimientos
+      .filter(
+        movimiento =>
+          movimiento.tipo === 'egreso' &&
+          !this.esPagoRealizado(movimiento)
+      )
+      .reduce(
+        (total, movimiento) => total + movimiento.monto,
+        0
+      );
+  }
+
+  private esPagoRealizado(movimiento: Movimiento): boolean {
+
+    const categoria = movimiento.categoria
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return categoria === 'pago' || categoria === 'transferencia';
   }
 
   gastoPorCategoria(
