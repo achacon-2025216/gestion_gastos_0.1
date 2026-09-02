@@ -244,7 +244,7 @@
 .input-wrap{position: relative;}
 
 .input-group input{
-  width: 100%;
+  width: 93%;
   background: var(--field-bg);
   border: 1.5px solid var(--border-color);
   border-radius: 15px;
