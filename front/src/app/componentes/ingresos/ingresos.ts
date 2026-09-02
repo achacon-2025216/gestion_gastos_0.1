@@ -206,10 +206,7 @@ export class Ingresos implements OnInit {
     return this.totalIngreso - salidas;
   }
 
-  /**
-   * Total de egresos registrados.
-   * Se utiliza para el saldo por pagar.
-   */
+  /** Egresos pendientes; no incluye pagos ni transferencias ya realizados. */
   get saldoPorPagar(): number {
 
     return this.todosLosMovimientos

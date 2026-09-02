@@ -272,6 +272,36 @@ export class InicioGastos
       this.totalEgresos;
   }
 
+  /**
+   * Egresos que todavía se consideran pendientes de pago.
+   * Un pago o una transferencia ya realizados descuentan del saldo activo,
+   * pero no deben mostrarse como una deuda pendiente.
+   */
+  get saldoPorPagar(): number {
+
+    return this.movimientos
+      .filter(
+        movimiento =>
+          movimiento.tipo === 'egreso' &&
+          !this.esPagoRealizado(movimiento)
+      )
+      .reduce(
+        (total, movimiento) => total + movimiento.monto,
+        0
+      );
+  }
+
+  private esPagoRealizado(movimiento: Movimiento): boolean {
+
+    const categoria = movimiento.categoria
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return categoria === 'pago' || categoria === 'transferencia';
+  }
+
   gastoPorCategoria(
     key: string
   ): number {
