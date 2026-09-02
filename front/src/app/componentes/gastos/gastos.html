@@ -1,115 +1,187 @@
-<div class="dashboard-container">
-  <!-- Navbar -->
-  <header class="top-navbar">
-    <div class="logo-section">
-      <span class="logo-text">Gasto<span>Check</span></span>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <img src="/img/logo/logo_check.png" alt="GastoCheck" class="brand-logo">
     </div>
-    <nav class="nav-links">
-      <a routerLink="/inicio-gastos" class="nav-item active">Inicio</a>
-      <a routerLink="/analisis" class="nav-item">Análisis</a>
-      <a routerLink="/ahorros" class="nav-item">Ahorros</a>
+    <nav>
+      <a routerLink="/inicio-gastos">Inicio</a>
+      <a routerLink="/gastos" class="active">Ingresos</a>
     </nav>
-    <div class="user-profile">
-      <div class="avatar-circle">JR</div>
-      <div>
-        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase;">User</div>
-        <div style="font-size:14px; font-weight:700;">Jack Rowe</div>
+    <div class="header-right">
+      <button class="search-btn" aria-label="Buscar">
+        <img src="/img/icon/icon_lupa.png" alt="" />
+      </button>
+      <div class="user">
+        <div class="avatar">
+          <img src="/img/icon/icon_user.png" alt="Usuario" />
+        </div>
+        <div class="user-text">
+          <span class="u-label">User</span>
+          <span class="u-name">{{ username }}</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Bienvenida -->
-  <div class="welcome-banner">
+  <div class="title-row">
     <div>
-      <h1>Gestión de Gastos</h1>
-      <p>Administra, filtra y mantén el control detallado de cada salida de dinero.</p>
+      <h1>Gestión de Ingresos</h1>
+      <p class="subtitle">Registra y da seguimiento a cada entrada de dinero del mes.</p>
     </div>
-    <button class="btn--primario">+ Nuevo Gasto</button>
+    <button class="btn-primary" (click)="openIncomeModal()">+ Nuevo ingreso</button>
   </div>
 
-  <!-- Métricas -->
-  <div class="metrics-grid">
-    <div class="metric-card dark-card">
-      <span>Gasto Total del Mes</span>
-      <h2>-Q 735.00</h2>
-      <div class="card-icon-badge" style="background:rgba(255,255,255,0.15);">📉</div>
-    </div>
-    <div class="metric-card">
-      <span>Categoría más alta</span>
-      <h2 style="font-size:22px;">Canasta Básica</h2>
-      <span style="font-size:12px; color:#64748b;">Q 380.00 (51.7%)</span>
-      <div class="card-icon-badge badge-rojo">🛒</div>
-    </div>
-    <div class="metric-card">
-      <span>Transacciones</span>
-      <h2>3 Registros</h2>
-      <span style="font-size:12px; color:#64748b;">Mes actual</span>
-      <div class="card-icon-badge badge-azul">📋</div>
-    </div>
-  </div>
-
-  <!-- Tabla + Panel -->
-  <div class="bottom-section">
-    <div class="movimientos-card">
-      <div class="movimientos__encabezado">
-        <h2>Movimientos del mes</h2>
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">INGRESOS</span>
+        <div class="stat-icon icon-green">
+          <img src="/img/icon/icon_verde_dinero.png" alt="Ingresos">
+        </div>
       </div>
-      <div class="table-toolbar">
-        <input type="text" placeholder="Buscar por descripción..." class="search-input">
-        <select class="filter-select">
-          <option>Todas las categorías</option>
-          <option>Canasta Básica</option>
-          <option>Servicios del Hogar</option>
-          <option>Transporte</option>
+      <div class="stat-value positive">+Q {{ totalIngreso | number:'1.2-2' }}</div>
+      <div class="stat-sub">Agosto 2026 · {{ movimientos.length }} movimientos</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="label-plain">Saldo por pagar</span>
+        <div class="stat-icon icon-red">
+          <img src="/img/icon/icon_rojo_dinero.png" alt="Saldo por pagar">
+        </div>
+      </div>
+      <div class="stat-value debt">Q {{ saldoPorPagar | number:'1.2-2' }}</div>
+      <div class="stat-sub">Tarjeta de crédito · vence 15/09</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">TRANSACCIONES</span>
+        <div class="stat-icon icon-amber">
+          <img src="/img/icon/icon_negro_factura.png" alt="Transacciones">
+        </div>
+      </div>
+      <div class="stat-value">{{ movimientos.length }}</div>
+      <div class="stat-sub">Registros este mes</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="panel">
+      <h2>Movimientos del mes</h2>
+      <p class="desc">Solo se muestran ingresos — los gastos viven en su propia vista.</p>
+      <div class="filters">
+        <input type="text" placeholder="Buscar por descripción..." [(ngModel)]="searchText">
+        <select [(ngModel)]="sourceFilter">
+          <option value="">Todas las fuentes</option>
+          <option value="Salario">Salario</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Otros">Otros</option>
         </select>
       </div>
-      <div style="overflow-x:auto;">
-        <table class="tabla">
-          <thead>
-            <tr><th>FECHA</th><th>DESCRIPCIÓN</th><th>CATEGORÍA</th><th>MONTO</th><th>ACCIÓN</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>03/08/2026</td>
-              <td>Supermercado La Torre</td>
-              <td><span class="badge category">Canasta Básica</span></td>
-              <td class="text-red">-Q 380.00</td>
-              <td><button class="btn-delete">✕</button></td>
-            </tr>
-            <tr>
-              <td>05/08/2026</td>
-              <td>Recibo de luz</td>
-              <td><span class="badge category">Servicios del Hogar</span></td>
-              <td class="text-red">-Q 95.00</td>
-              <td><button class="btn-delete">✕</button></td>
-            </tr>
-            <tr>
-              <td>07/08/2026</td>
-              <td>Gasolinera Shell</td>
-              <td><span class="badge category">Transporte</span></td>
-              <td class="text-red">-Q 60.00</td>
-              <td><button class="btn-delete">✕</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Descripción</th><th>Fuente</th><th style="text-align:right">Monto</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mov of filteredMovimientos()">
+            <td>{{ mov.fecha }}</td>
+            <td>{{ mov.descripcion }}</td>
+            <td><span class="tag" [ngClass]="tagClass(mov.fuente)">{{ mov.fuente }}</span></td>
+            <td class="amount">+Q {{ mov.monto | number:'1.2-2' }}</td>
+            <td class="del" (click)="eliminarMovimiento(mov)">✕</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="side-panel">
-      <div>
-        <h3>Estado del Presupuesto</h3>
-        <p class="panel-desc">Has consumido el 73.5% de tu meta límite de gastos mensuales.</p>
-        <div class="progress-bar-container">
-          <div class="progress-fill" style="width:73.5%;"></div>
-        </div>
-        <div class="budget-details">
-          <div class="budget-item"><span>Límite Mensual</span><strong>Q 1,000.00</strong></div>
-          <div class="budget-item"><span>Disponible</span><strong class="text-green">Q 265.00</strong></div>
+    <div>
+      <div class="panel" style="margin-bottom:20px;">
+        <h2>Transferencias</h2>
+        <p class="desc">Envía dinero a otra cuenta o paga un servicio directo desde aquí.</p>
+        <button class="btn-primary" style="width:100%;margin-bottom:18px;" (click)="openTransferModal()">↔ Transferir o pagar</button>
+        <div class="transfer-list">
+          <div class="transfer-item" *ngFor="let t of transferencias">
+            <div class="t-icon">↗</div>
+            <div class="t-info">
+              <div class="t-name">{{ t.nombre }}</div>
+              <div class="t-date">{{ t.fecha }}</div>
+            </div>
+            <div class="t-amount">-Q {{ t.monto | number:'1.2-2' }}</div>
+          </div>
         </div>
       </div>
-      <div class="tip-box">
-        💡 <b>Consejo:</b> Tus gastos en transporte se han reducido un 12% en comparación al mes pasado. ¡Buen trabajo!
+
+      <div class="panel">
+        <h2>Ingreso por fuente</h2>
+        <p class="desc">Distribución de tus entradas de dinero este mes.</p>
+        <div class="cats">
+          <div class="cat-row" *ngFor="let c of categorias">
+            <div class="cat-top"><span class="name">{{ c.nombre }}</span><span>{{ c.porcentaje }}%</span></div>
+            <div class="cat-track"><div class="cat-fill" [style.width.%]="c.porcentaje" [style.background]="c.color"></div></div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
+
+</div>
+
+<!-- Modal: nuevo ingreso -->
+<div class="modal-overlay" [class.open]="showIncomeModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nuevo ingreso</h3>
+      <button class="modal-close" (click)="closeIncomeModal()">✕</button>
+    </div>
+    <form (ngSubmit)="submitIncome()">
+      <label for="iDesc">Descripción</label>
+      <input type="text" id="iDesc" name="descripcion" placeholder="Ej. Sueldo quincena"
+             [(ngModel)]="newIncome.descripcion" required>
+      <label for="iSource">Fuente</label>
+      <select id="iSource" name="fuente" [(ngModel)]="newIncome.fuente">
+        <option value="Salario">Salario</option>
+        <option value="Freelance">Freelance</option>
+        <option value="Otros">Otros</option>
+      </select>
+      <label for="iAmount">Monto</label>
+      <input type="number" id="iAmount" name="monto" placeholder="0.00" min="0.01" step="0.01"
+             [(ngModel)]="newIncome.monto" required>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeIncomeModal()">Cancelar</button>
+        <button type="submit" class="btn-primary">Agregar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: transferir / pagar -->
+<div class="modal-overlay" [class.open]="showTransferModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nueva transferencia</h3>
+      <button class="modal-close" (click)="closeTransferModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button type="button" class="modal-tab" [class.active]="transferType === 'Transferencia'"
+              (click)="setTransferType('Transferencia')">Transferir</button>
+      <button type="button" class="modal-tab" [class.active]="transferType === 'Pago'"
+              (click)="setTransferType('Pago')">Pagar</button>
+    </div>
+    <form (ngSubmit)="submitTransfer()">
+      <label>{{ transferType === 'Transferencia' ? 'Destinatario' : 'Servicio o comercio' }}</label>
+      <input type="text" name="nombreTransfer" [(ngModel)]="newTransfer.nombre"
+             [placeholder]="transferType === 'Transferencia' ? 'Nombre de la cuenta o persona' : 'Ej. Recibo de luz, EMPAGUA...'"
+             required>
+      <label>Monto</label>
+      <input type="number" name="montoTransfer" min="0.01" step="0.01" [(ngModel)]="newTransfer.monto" required>
+      <label>Nota (opcional)</label>
+      <input type="text" name="notaTransfer" [(ngModel)]="newTransfer.nota">
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeTransferModal()">Cancelar</button>
+        <button type="submit" class="btn-primary">{{ transferType === 'Transferencia' ? 'Transferir' : 'Pagar' }}</button>
+      </div>
+    </form>
   </div>
 </div>
