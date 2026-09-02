@@ -1,12 +1,25 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  DestroyRef,
+  inject,
+  OnInit
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-type FuenteIngreso = 'Salario' | 'Freelance' | 'Otros';
+import { AuthService } from '../../services/auth';
+import {
+  MovimientoApi,
+  MovimientosService
+} from '../../services/movimientos';
+
+type FuenteIngreso = string;
 
 interface Movimiento {
+  id: number;
   fecha: string;
   descripcion: string;
   fuente: FuenteIngreso;
@@ -14,6 +27,7 @@ interface Movimiento {
 }
 
 interface Transferencia {
+  id: number;
   nombre: string;
   fecha: string;
   monto: number;
@@ -22,70 +36,300 @@ interface Transferencia {
 @Component({
   selector: 'app-ingresos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink
+  ],
   templateUrl: './ingresos.html',
   styleUrl: './ingresos.css',
 })
-export class Ingresos {
-  private authService = inject(AuthService);
+export class Ingresos implements OnInit {
 
-  username = this.authService.getCurrentUser()?.username ?? 'Usuario';
+  private authService = inject(AuthService);
+  private movimientosService = inject(MovimientosService);
+  private destroyRef = inject(DestroyRef);
+  private changeDetector = inject(ChangeDetectorRef);
+
+  username =
+    this.authService.getCurrentUser()?.username ?? 'Usuario';
+
   searchText = '';
   sourceFilter = '';
+
   showIncomeModal = false;
   showTransferModal = false;
+
   transferType: 'Transferencia' | 'Pago' = 'Transferencia';
 
-  movimientos: Movimiento[] = [
-    { fecha: '03/08/2026', descripcion: 'Sueldo quincena', fuente: 'Salario', monto: 3500 },
-    { fecha: '09/08/2026', descripcion: 'Diseño de sitio web', fuente: 'Freelance', monto: 850 },
-    { fecha: '15/08/2026', descripcion: 'Venta de artículo', fuente: 'Otros', monto: 200 },
-  ];
+  /**
+   * SOLO INGRESOS
+   */
+  movimientos: Movimiento[] = [];
 
-  transferencias: Transferencia[] = [
-    { nombre: 'Pago de tarjeta', fecha: '15/08/2026', monto: 200 },
-  ];
+  /**
+   * Todos los movimientos obtenidos de la API.
+   */
+  private todosLosMovimientos: MovimientoApi[] = [];
 
-  newIncome: { descripcion: string; fuente: FuenteIngreso; monto: number | null } = {
-    descripcion: '', fuente: 'Salario', monto: null,
+  transferencias: Transferencia[] = [];
+
+  newIncome: {
+    descripcion: string;
+    fuente: FuenteIngreso;
+    monto: number | null;
+  } = {
+    descripcion: '',
+    fuente: '',
+    monto: null
   };
-  newTransfer: { nombre: string; monto: number | null; nota: string } = {
-    nombre: '', monto: null, nota: '',
+
+  newTransfer: {
+    nombre: string;
+    monto: number | null;
+    nota: string;
+  } = {
+    nombre: '',
+    monto: null,
+    nota: ''
   };
 
-  get totalIngreso(): number {
-    return this.movimientos.reduce((total, movimiento) => total + movimiento.monto, 0);
+  ngOnInit(): void {
+    this.movimientosService.movimientos$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(
+        movimientos =>
+          this.mostrarMovimientos(movimientos)
+      );
+
+    this.cargarMovimientos();
   }
 
-  get saldoPorPagar(): number {
-    return this.transferencias.reduce((total, transferencia) => total + transferencia.monto, 0);
-  }
+  /**
+   * Carga los movimientos y deja SOLO los ingresos.
+   */
+  private cargarMovimientos(): void {
 
-  get categorias(): Array<{ nombre: FuenteIngreso; porcentaje: number; color: string }> {
-    const total = this.totalIngreso;
-    const fuentes: FuenteIngreso[] = ['Salario', 'Freelance', 'Otros'];
-    const colores: Record<FuenteIngreso, string> = {
-      Salario: '#1f9d66', Freelance: '#2a6f8f', Otros: '#f2b84b',
-    };
+    this.movimientosService
+      .obtener()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
 
-    return fuentes.map(nombre => {
-      const monto = this.movimientos
-        .filter(movimiento => movimiento.fuente === nombre)
-        .reduce((subtotal, movimiento) => subtotal + movimiento.monto, 0);
-      return { nombre, porcentaje: total ? Math.round((monto / total) * 100) : 0, color: colores[nombre] };
+      error: error => {
+        console.error(
+          'ERROR AL CARGAR INGRESOS:',
+          error
+        );
+      }
     });
   }
 
-  filteredMovimientos(): Movimiento[] {
-    const termino = this.searchText.trim().toLowerCase();
-    return this.movimientos.filter(movimiento =>
-      (!termino || movimiento.descripcion.toLowerCase().includes(termino)) &&
-      (!this.sourceFilter || movimiento.fuente === this.sourceFilter)
+  /**
+   * Actualiza la pantalla desde el estado compartido y conserva
+   * solamente los movimientos marcados como ingreso.
+   */
+  private mostrarMovimientos(
+    movimientos: MovimientoApi[]
+  ): void {
+
+    this.todosLosMovimientos = movimientos;
+
+    this.transferencias = movimientos
+      .filter(movimiento => this.esTransferencia(movimiento))
+      .map(movimiento => ({
+        id: movimiento.id,
+        nombre: movimiento.descripcion,
+        fecha: new Date(movimiento.fecha).toLocaleDateString('es-GT'),
+        monto: Number(movimiento.monto)
+      }));
+
+    this.movimientos = movimientos
+      .filter(
+        movimiento => movimiento.tipo === 'ingreso'
+      )
+      .map(
+        movimiento => this.normalizarIngreso(movimiento)
+      );
+
+    this.changeDetector.markForCheck();
+  }
+
+  /**
+   * Convierte el movimiento de la API
+   * al formato que utiliza esta vista.
+   */
+  private normalizarIngreso(
+    movimiento: MovimientoApi
+  ): Movimiento {
+
+    return {
+      id: movimiento.id,
+
+      fecha: new Date(
+        movimiento.fecha
+      ).toLocaleDateString('es-GT'),
+
+      descripcion: movimiento.descripcion,
+
+      fuente: movimiento.categoria,
+
+      monto: Number(movimiento.monto)
+    };
+  }
+
+  /**
+   * Total de ingresos.
+   */
+  get totalIngreso(): number {
+
+    return this.movimientos.reduce(
+      (total, movimiento) =>
+        total + movimiento.monto,
+      0
     );
   }
 
-  tagClass(fuente: FuenteIngreso): string {
-    return `tag-${fuente.toLowerCase()}`;
+  /** Dinero disponible después de gastos, pagos y transferencias. */
+  get saldoDisponible(): number {
+
+    const salidas = this.todosLosMovimientos
+      .filter(movimiento => movimiento.tipo === 'egreso')
+      .reduce(
+        (total, movimiento) => total + Number(movimiento.monto),
+        0
+      );
+
+    return this.totalIngreso - salidas;
+  }
+
+  /**
+   * Total de egresos registrados.
+   * Se utiliza para el saldo por pagar.
+   */
+  get saldoPorPagar(): number {
+
+    return this.todosLosMovimientos
+      .filter(
+        movimiento =>
+          movimiento.tipo === 'egreso' &&
+          !this.esTransferencia(movimiento)
+      )
+      .reduce(
+        (total, movimiento) =>
+          total + Number(movimiento.monto),
+        0
+      );
+  }
+
+  /**
+   * Distribución de ingresos por fuente.
+   */
+  get categorias(): Array<{
+    nombre: FuenteIngreso;
+    porcentaje: number;
+    color: string;
+  }> {
+
+    const total = this.totalIngreso;
+
+    const fuentes = this.fuentesDisponibles;
+    const colores = [
+      '#1f9d66', '#2a6f8f', '#f2b84b', '#8b5cf6',
+      '#f97316', '#0f4c42', '#ef4444', '#64748b'
+    ];
+
+    return fuentes.map((nombre, index) => {
+
+      const monto = this.movimientos
+        .filter(
+          movimiento =>
+            movimiento.fuente === nombre
+        )
+        .reduce(
+          (subtotal, movimiento) =>
+            subtotal + movimiento.monto,
+          0
+        );
+
+      return {
+        nombre,
+
+        porcentaje: total
+          ? Math.round(
+              (monto / total) * 100
+            )
+          : 0,
+
+        color: colores[index % colores.length]
+      };
+    });
+  }
+
+  get fuentesDisponibles(): string[] {
+
+    return Array.from(
+      new Set(
+        this.movimientos.map(
+          movimiento => movimiento.fuente
+        )
+      )
+    ).sort((a, b) => a.localeCompare(b, 'es'));
+  }
+
+  /**
+   * Filtro de búsqueda y fuente.
+   */
+  filteredMovimientos(): Movimiento[] {
+
+    const termino =
+      this.searchText
+        .trim()
+        .toLowerCase();
+
+    return this.movimientos.filter(
+      movimiento =>
+
+        (
+          !termino ||
+          movimiento.descripcion
+            .toLowerCase()
+            .includes(termino)
+        )
+
+        &&
+
+        (
+          !this.sourceFilter ||
+          movimiento.fuente === this.sourceFilter
+        )
+    );
+  }
+
+  private esTransferencia(movimiento: MovimientoApi): boolean {
+
+    const categoria = movimiento.categoria
+      .trim()
+      .toLowerCase();
+
+    return categoria === 'transferencia' || categoria === 'pago';
+  }
+
+  tagClass(
+    fuente: FuenteIngreso
+  ): string {
+
+    const clase = fuente
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return ['salario', 'freelance', 'otros'].includes(clase)
+      ? `tag-${clase}`
+      : 'tag-otros';
   }
 
   openIncomeModal(): void {
@@ -93,25 +337,103 @@ export class Ingresos {
   }
 
   closeIncomeModal(): void {
+
     this.showIncomeModal = false;
-    this.newIncome = { descripcion: '', fuente: 'Salario', monto: null };
+
+    this.newIncome = {
+      descripcion: '',
+      fuente: '',
+      monto: null
+    };
   }
 
+  /**
+   * GUARDA UN INGRESO.
+   */
   submitIncome(): void {
-    const monto = this.newIncome.monto;
-    if (!this.newIncome.descripcion.trim() || !monto || monto <= 0) return;
 
-    this.movimientos.unshift({
-      fecha: new Date().toLocaleDateString('es-GT'),
-      descripcion: this.newIncome.descripcion.trim(),
-      fuente: this.newIncome.fuente,
-      monto,
-    });
-    this.closeIncomeModal();
+    const monto = this.newIncome.monto;
+
+    if (
+      !this.newIncome.descripcion.trim() ||
+      !this.newIncome.fuente.trim() ||
+      !monto ||
+      monto <= 0
+    ) {
+      return;
+    }
+
+    const nuevoIngreso = {
+      fecha: new Date().toISOString(),
+
+      descripcion:
+        this.newIncome.descripcion.trim(),
+
+      categoria:
+        this.newIncome.fuente.trim(),
+
+      /**
+       * MUY IMPORTANTE:
+       * este movimiento es un INGRESO.
+       */
+      tipo: 'ingreso' as const,
+
+      monto: Number(monto)
+    };
+
+    console.log(
+      'ENVIANDO INGRESO:',
+      nuevoIngreso
+    );
+
+    this.movimientosService
+      .crear(nuevoIngreso)
+      .subscribe({
+
+        next: movimiento => {
+
+          console.log(
+            'INGRESO GUARDADO:',
+            movimiento
+          );
+
+          // El servicio publica el nuevo movimiento en movimientos$.
+          this.closeIncomeModal();
+          this.changeDetector.markForCheck();
+        },
+
+        error: error => {
+
+          console.error(
+            'ERROR AL GUARDAR INGRESO:',
+            error
+          );
+        }
+      });
   }
 
-  eliminarMovimiento(movimiento: Movimiento): void {
-    this.movimientos = this.movimientos.filter(item => item !== movimiento);
+  /**
+   * Elimina un ingreso.
+   */
+  eliminarMovimiento(
+    movimiento: Movimiento
+  ): void {
+
+    this.movimientosService
+      .eliminar(movimiento.id)
+      .subscribe({
+
+        // El servicio actualiza movimientos$ al completar la eliminación.
+        next: () => {},
+
+        error: error => {
+
+          console.error(
+            'ERROR AL ELIMINAR INGRESO:',
+            error
+          );
+        }
+      });
   }
 
   openTransferModal(): void {
@@ -119,23 +441,56 @@ export class Ingresos {
   }
 
   closeTransferModal(): void {
+
     this.showTransferModal = false;
-    this.newTransfer = { nombre: '', monto: null, nota: '' };
+
+    this.newTransfer = {
+      nombre: '',
+      monto: null,
+      nota: ''
+    };
   }
 
-  setTransferType(tipo: 'Transferencia' | 'Pago'): void {
+  setTransferType(
+    tipo: 'Transferencia' | 'Pago'
+  ): void {
+
     this.transferType = tipo;
   }
 
   submitTransfer(): void {
-    const monto = this.newTransfer.monto;
-    if (!this.newTransfer.nombre.trim() || !monto || monto <= 0) return;
 
-    this.transferencias.unshift({
-      nombre: this.newTransfer.nombre.trim(),
-      fecha: new Date().toLocaleDateString('es-GT'),
-      monto,
-    });
-    this.closeTransferModal();
+    const monto =
+      this.newTransfer.monto;
+
+    if (
+      !this.newTransfer.nombre.trim() ||
+      !monto ||
+      monto <= 0
+    ) {
+      return;
+    }
+
+    const descripcion = this.newTransfer.nota.trim()
+      ? `${this.newTransfer.nombre.trim()} - ${this.newTransfer.nota.trim()}`
+      : this.newTransfer.nombre.trim();
+
+    this.movimientosService
+      .crear({
+        fecha: new Date().toISOString(),
+        descripcion,
+        categoria: this.transferType,
+        tipo: 'egreso',
+        monto: Number(monto)
+      })
+      .subscribe({
+        next: () => {
+          this.closeTransferModal();
+          this.changeDetector.markForCheck();
+        },
+        error: error => {
+          console.error('ERROR AL GUARDAR TRANSFERENCIA:', error);
+        }
+      });
   }
 }

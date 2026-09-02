@@ -10,9 +10,21 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String @unique
+  id       Int     @id @default(autoincrement())
+  username String  @unique
   email    String? @unique
   password String
-  role     String @default("user")
+  role     String  @default("user")
+  gastos   Gasto[]
+}
+
+model Gasto {
+  id          Int      @id @default(autoincrement())
+  descripcion String
+  categoria   String
+  tipo        String
+  monto       Decimal  @db.Decimal(10, 2)
+  fecha       DateTime @default(now())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }

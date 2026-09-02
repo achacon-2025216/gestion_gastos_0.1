@@ -400,7 +400,7 @@ summary.select-menu::marker {
 /* Sección Inferior (Movimientos + Gráfica) */
 .bottom-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 1.35fr) minmax(520px, 1fr);
   gap: 20px;
 }
 
@@ -424,61 +424,69 @@ summary.select-menu::marker {
 
 /* Tarjeta Gráfica Lateral */
 .grafica-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
   align-items: center;
-  text-align: center;
+  min-height: 340px;
+  padding: 30px;
+  overflow: hidden;
 }
 
 .grafica-info {
   width: 100%;
   text-align: left;
+  position: relative;
+  z-index: 2;
 }
 
 .grafica-info h3 {
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 400;
   color: var(--texto-suave);
   margin: 0;
+  white-space: nowrap;
 }
 
 .grafica-info h2 {
-  font-size: 24px;
-  margin: 4px 0;
+  font-size: 32px;
+  margin: 22px 0 16px;
+  white-space: nowrap;
+  letter-spacing: -1px;
 }
 
 .btn-reiniciar {
   background-color: #234e52;
   color: #fff;
   border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
+  padding: 12px 28px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 400;
   margin-top: 8px;
 }
 
 .chart-container {
-  margin: 20px 0;
+  margin: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 0;
 }
 
 .donut-wrapper {
   position: relative;
-  width: 190px;
-  height: 190px;
+  width: 260px;
+  height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 30px 50px;
+  margin: 20px auto;
 }
 
 .donut-ring {
-  width: 150px;
-  height: 150px;
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
   /* Q1 0-13.1% menta | Q2 13.1-41.7% gris azulado | Q3 41.7-69.7% azul marino | Q4 69.7-100% verde oscuro */
   background: conic-gradient(
@@ -493,25 +501,54 @@ summary.select-menu::marker {
 }
 
 .donut-hole {
-  width: 95px;
-  height: 95px;
+  width: 100px;
+  height: 100px;
   background-color: #ffffff;
   border-radius: 50%;
 }
 
 .donut-label {
   position: absolute;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
   color: #4b5563;
   line-height: 1.3;
-  white-space: nowrap;
+  max-width: 95px;
+  white-space: normal;
+  z-index: 2;
 }
 
-.donut-label.q1 { top: -25px; right: -15px; text-align: right; }
-.donut-label.q2 { top: 45%; right: -65px; text-align: left; }
-.donut-label.q3 { bottom: -35px; left: 5px; text-align: left; }
-.donut-label.q4 { top: -15px; left: -50px; text-align: right; }
+.donut-label.q1 { top: 0; right: 34px; text-align: center; }
+.donut-label.q2 { top: 48%; right: -4px; text-align: left; }
+.donut-label.q3 { bottom: 0; left: 58px; text-align: center; }
+.donut-label.q4 { top: 36px; left: -4px; text-align: right; }
+
+.grafica-leyenda {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leyenda-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.leyenda-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.leyenda-vacia {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
 
 /* Botones Generales */
 .btn {
@@ -697,4 +734,7 @@ summary.select-menu::marker {
   .top-navbar { flex-direction: column; gap: 12px; border-radius: 20px; padding: 15px; }
   .tabla { display: block; overflow-x: auto; }
   .welcome-banner { flex-direction: column; align-items: flex-start; }
+  .grafica-card { grid-template-columns: 1fr; padding: 28px 20px; }
+  .grafica-info { text-align: center; }
+  .grafica-info h2 { font-size: 34px; }
 }
