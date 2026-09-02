@@ -16,7 +16,7 @@
 
   display:block;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: linear-gradient(180deg, #1e5449 0, #1e5449 415px, #f2f4f2 385px);
+  background: linear-gradient(180deg, #1e5449 0, #1e5449 385px, #f2f4f2 385px);
   min-height:100vh;
   color:var(--card-text);
 }
