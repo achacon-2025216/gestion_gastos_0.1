@@ -1,38 +1,83 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../services/auth';
+
+declare var google: any;
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './registro.html',
-  styleUrl: './registro.css'
+  styleUrls: ['./registro.css']
 })
+export class RegistroComponent implements AfterViewInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-export class RegistroComponent {
-  username = '';
-  password = '';
-  successMessage = '';
-  errorMessage = '';
+  username: string = '';
+  email: string = '';
+  password: string = '';
+  errorMessage: string = '';
+  successMessage: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  @ViewChild('googleBtn', { static: false }) googleBtn!: ElementRef;
 
-  onRegister() {
-    const newUser = { username: this.username, password: this.password };
+  ngAfterViewInit(): void {
+    this.initGoogleSignIn();
+  }
 
-    this.http.post<any>('http://localhost:3000/api/register', newUser).subscribe({
-      next: (response) => {
-        this.successMessage = '¡Cuenta creada con éxito! Redirigiendo...';
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
+  initGoogleSignIn(): void {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: '463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com',
+        callback: (response: any) => this.handleGoogleCredentialResponse(response)
+      });
+
+      if (this.googleBtn && this.googleBtn.nativeElement) {
+        google.accounts.id.renderButton(
+          this.googleBtn.nativeElement,
+          { 
+            theme: 'outline', 
+            size: 'large', 
+            shape: 'pill', 
+            width: '100%'  
+          }
+        );
+      }
+    }
+  }
+
+  handleGoogleCredentialResponse(response: any): void {
+    const token = response.credential;
+    this.authService.loginWithGoogle(token).subscribe({
+      next: () => this.router.navigate(['/inicio-gastos']),
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'No se pudo completar el registro con Google.';
+        this.successMessage = '';
+      }
+    });
+  }
+
+  onRegister(): void {
+    if (!this.username || !this.email || !this.password) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      this.successMessage = '';
+      return;
+    }
+
+    this.errorMessage = '';
+    this.authService.register(this.username, this.email, this.password).subscribe({
+      next: () => {
+        this.successMessage = '¡Cuenta creada con éxito!';
+        this.router.navigate(['/inicio-gastos']);
       },
       error: (err) => {
-        this.errorMessage = err.error?.error || 'Error al registrar el usuario';
-        console.error(err);
+        this.errorMessage = err.error?.error || 'No se pudo crear la cuenta.';
+        this.successMessage = '';
       }
     });
   }

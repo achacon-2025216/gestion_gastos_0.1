@@ -1,13 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { AuthService } from './auth'; // <--- Cambiado de 'Auth' a 'AuthService'
 
-import { Auth } from './auth';
-
-describe('Auth', () => {
-  let service: Auth;
+describe('AuthService', () => {
+  let service: AuthService; // <--- Cambiado el tipo
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Auth);
+    service = TestBed.inject(AuthService); // <--- Inyectar AuthService
   });
 
   it('should be created', () => {

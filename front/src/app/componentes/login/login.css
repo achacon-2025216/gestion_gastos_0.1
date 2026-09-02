@@ -40,9 +40,10 @@
 .blob{
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
-  opacity: .35;
+  filter: blur(32px);
+  opacity: .32;
   animation: drift 14s ease-in-out infinite;
+  will-change: transform;
 }
 .blob1{width: 280px; height: 280px; background: var(--sage-light); top: -60px; left: -80px;}
 .blob2{width: 220px; height: 220px; background: #cfe3da; bottom: -40px; right: -60px; animation-delay: 3s;}
@@ -186,7 +187,7 @@
 .coin5{width: 28px; height: 28px; bottom: 130px; left: 70px; font-size: 11px; animation-duration: 5.8s;}
 .coin6{width: 14px; height: 14px; top: 160px; right: 20px; font-size: 7px; animation-duration: 4s; background: var(--sage-light);}
 
-/* ---------- PANEL DERECHO (#265957 en todo el fondo y tarjeta) ---------- */
+/* ---------- PANEL DERECHO ---------- */
 .login-right-panel{
   width: 50%;
   background: var(--primary-color);
@@ -242,13 +243,12 @@
 }
 .input-wrap{position: relative;}
 
-/* Inputs a lo ancho de todo el contenedor */
 .input-group input{
-  width: 100%;
+  width: 93%;
   background: var(--field-bg);
   border: 1.5px solid var(--border-color);
   border-radius: 15px;
-  padding: 10px 5px;
+  padding: 10px 15px;
   color: #fff;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
@@ -286,6 +286,35 @@
   transform: translateY(-2px);
   box-shadow: 0 12px 24px -8px rgba(121,183,154,0.55);
 }
+
+/* ---------- ESTILOS PARA GOOGLE NATIVO ---------- */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.divider span {
+  padding: 0 10px;
+}
+
+.google-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+/* ----------------------------------------------- */
 
 .login-footer{
   text-align: center;

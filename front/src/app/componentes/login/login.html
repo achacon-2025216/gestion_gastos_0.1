@@ -10,7 +10,7 @@
 
       <div class="brand-content">
         <div class="logo-container">
-          <img src="/img/logo_check.png" alt="Logo GastoCheck">
+          <img src="/img/logo/logo_check.png" alt="Logo GastoCheck">
         </div>
         <h1>GastoCheck</h1>
         <p class="brand-tagline">Toma el control de tus finanzas de forma inteligente y segura todos los días.</p>
@@ -64,8 +64,6 @@
         <div class="coin coin4">$</div>
         <div class="coin coin5">$</div>
         <div class="coin coin6">$</div>
-        <div class="coin coin7">$</div>
-        <div class="coin coin8">$</div>
       </div>
 
     </div>
@@ -87,8 +85,8 @@
 
       <form (submit)="onLogin(); $event.preventDefault()">
         <div class="input-group">
-          <label>Usuario</label>
-          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario" required />
+          <label>Usuario o correo</label>
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Ingresa tu usuario o correo" required />
         </div>
 
         <div class="input-group">
@@ -102,6 +100,16 @@
 
         <button type="submit" class="btn-submit">Entrar</button>
       </form>
+
+      <!-- SEPARADOR O CONTINUAR CON -->
+      <div class="divider">
+        <span>o continúa con</span>
+      </div>
+
+      <!-- BOTÓN OFICIAL DE GOOGLE NATIVO -->
+      <div class="google-btn-container">
+        <div #googleBtn style="width: 100%; display: flex; justify-content: center;"></div>
+      </div>
 
       <div class="login-footer">
         <p>¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>

@@ -1,46 +1,110 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../services/auth'; 
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth';
+
+declare var google: any;
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrls: ['./login.css']
 })
-export class LoginComponent implements OnInit {
-  username = '';
-  password = '';
-  errorMessage = '';
-  sessionExpired = false;
-  showPassword = false;
+export class LoginComponent implements AfterViewInit, OnInit {
+  private authService: AuthService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
-  // Declaramos la variable para el logo
-  logoSrc = 'img/logo_check.png'; 
+  logoSrc: string = 'assets/logo.png'; 
+  sessionExpired: boolean = false;
+  username: string = '';
+  password: string = '';
+  errorMessage: string = '';
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
+  @ViewChild('googleBtn', { static: false }) googleBtn!: ElementRef;
 
   ngOnInit(): void {
-    this.sessionExpired = this.route.snapshot.queryParamMap.get('expired') === '1';
+    this.route.queryParams.subscribe(params => {
+      if (params['expired'] === '1') {
+        this.sessionExpired = true;
+        this.errorMessage = '';
+      }
+    });
   }
 
-  onLogin() {
+  ngAfterViewInit(): void {
+    this.initGoogleSignIn();
+  }
+
+  initGoogleSignIn(): void {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: '463867676917-g8hga9ugqt9um24hpkoakrhlrt7jjhbs.apps.googleusercontent.com',
+        callback: (response: any) => this.handleGoogleCredentialResponse(response)
+      });
+
+      if (this.googleBtn && this.googleBtn.nativeElement) {
+        google.accounts.id.renderButton(
+          this.googleBtn.nativeElement,
+          { 
+            theme: 'outline', 
+            size: 'large', 
+            shape: 'pill'
+            // Nota: Se removió 'width: 100%' para evitar el bloqueo del SDK de Google
+          }
+        );
+      }
+    }
+  }
+
+  handleGoogleCredentialResponse(response: any): void {
+    try {
+      const googleToken = response.credential;
+      console.log('Token de Google capturado correctamente. Enviando al backend...');
+
+      // Petición al backend en Node.js para generar el token interno limitado a 2 minutos
+      this.authService.loginWithGoogle(googleToken).subscribe({
+        next: (res) => {
+          if (res && res.token) {
+            console.log('¡ÉXITO! Token de 2 minutos aplicado correctamente.');
+            this.router.navigate(['/inicio-gastos']);
+          } else {
+            console.error('El servidor respondió pero no envió un token válido:', res);
+            this.errorMessage = 'Error: El servidor no devolvió el token de sesión.';
+          }
+        },
+        error: (err) => {
+          console.error('ERROR: El backend rechazó la petición o está apagado:', err);
+          this.errorMessage = 'No se pudo conectar con el servidor en el puerto 4000.';
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error interno al procesar Google login:', error);
+      this.errorMessage = 'No se pudo completar el acceso con Google.';
+    }
+  }
+
+  onLogin(): void {
+    if (!this.username || !this.password) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      return;
+    }
+
     this.errorMessage = '';
 
     this.authService.login(this.username, this.password).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Login tradicional exitoso:', res);
         this.router.navigate(['/inicio-gastos']);
       },
       error: (err) => {
-        this.errorMessage = 'Usuario o contraseña incorrectos';
-        console.error(err);
+        console.error('Error en el login:', err);
+        this.errorMessage = err.error?.error || err.error?.message || 'Usuario o contraseña incorrectos.';
       }
     });
   }
