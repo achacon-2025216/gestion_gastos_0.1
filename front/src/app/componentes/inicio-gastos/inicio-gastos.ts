@@ -225,6 +225,11 @@ export class InicioGastos
       .isAdmin();
   }
 
+  cerrarSesion(): void {
+
+    this.authService.logout();
+  }
+
   /**
    * Total de ingresos.
    *

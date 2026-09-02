@@ -9,22 +9,27 @@
     </div>
     <nav class="nav-links">
       <a href="#" class="nav-item active">Inicio</a>
-      <a href="#" class="nav-item">Análisis</a>
-      <a href="#" class="nav-item">Ahorros</a>
+      <span class="nav-item nav-item--disabled" aria-disabled="true">Análisis</span>
+      <span class="nav-item nav-item--disabled" aria-disabled="true">Ahorros</span>
     </nav>
     <div class="user-section">
       <button class="icon-btn icon-btn--busqueda" aria-label="Buscar">
         <img src="/img/icon/icon_lupa.png" alt="Buscar" width="18" height="18" style="object-fit: contain;" />
       </button>
-      <div class="user-profile">
-        <div class="avatar-circle">
-          <img src="/img/icon/icon_user.png" alt="Usuario" width="32" height="32" style="object-fit: contain;" />
+      <details class="user-menu">
+        <summary class="user-profile" aria-label="Abrir menú de usuario">
+          <div class="avatar-circle">
+            <img src="/img/icon/icon_user.png" alt="" width="32" height="32" style="object-fit: contain;" />
+          </div>
+          <div class="user-info">
+            <span class="user-label">User</span>
+            <span class="user-name">{{ currentUser?.username || 'Usuario' }}</span>
+          </div>
+        </summary>
+        <div class="user-menu__dropdown">
+          <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
         </div>
-        <div class="user-info">
-          <span class="user-label">User</span>
-          <span class="user-name">{{ currentUser?.username || 'Usuario' }}</span>
-        </div>
-      </div>
+      </details>
     </div>
   </header>
 

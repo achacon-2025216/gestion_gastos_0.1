@@ -333,6 +333,10 @@ export class Ingresos implements OnInit {
     this.showIncomeModal = true;
   }
 
+  cerrarSesion(): void {
+    this.authService.logout();
+  }
+
   closeIncomeModal(): void {
 
     this.showIncomeModal = false;
