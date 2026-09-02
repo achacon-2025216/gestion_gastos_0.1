@@ -16,6 +16,12 @@
   ```
 
 ---
+## Raiz del proyecto
+
+### Clonar repositorio y entrar a la rama y en ese momento poner 
+```bash
+pnpm install
+```
 
 ## Backend
 
