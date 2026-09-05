@@ -124,5 +124,4 @@ pnpm start
 ```
 
 Frontend corriendo en `http://localhost:4200`.
-
 ---
