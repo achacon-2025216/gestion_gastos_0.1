@@ -126,21 +126,3 @@ pnpm start
 Frontend corriendo en `http://localhost:4200`.
 
 ---
-
-## Resumen rápido
-
-```bash
-# Backend
-cd backend
-pnpm install
-pnpm approve-builds
-# crear .env manualmente
-pnpm prisma generate
-pnpm dev
-
-# Frontend (otra terminal)
-cd front
-pnpm install
-pnpm approve-builds
-pnpm start
-```
